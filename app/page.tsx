@@ -24,14 +24,7 @@ export default function SarathiHomepage() {
   // 2. ADDED: The entire block for voice control logic
   const { setPageSpecificCommands } = useVoice();
   // Define the voice-controllable sections on this page. These MUST match the `id`s below.
-  const homepageSections = [
-    "home",
-    "features",
-    "experience",
-    "intelligence",
-    "community",
-    "join",
-  ];
+  const homepageSections = ['home', 'features', 'experience', 'intelligence', 'community', 'join'];
 
   // When this page loads, it tells the global voice system which commands are available.
   useEffect(() => {
@@ -39,9 +32,10 @@ export default function SarathiHomepage() {
     // When the page is left, it clears the commands for the next page.
     return () => {
       setPageSpecificCommands([]);
-    };
-  }, []);
+    }
+  }, []); 
   // --- End of added voice logic block ---
+
 
   // --- All of your team's original code starts here and is untouched ---
 
@@ -168,10 +162,7 @@ export default function SarathiHomepage() {
       </div>
 
       {/* Hero Section */}
-      <section
-        id="home"
-        className="relative min-h-screen flex items-center justify-center px-4 py-20"
-      >
+      <section id="home" className="relative min-h-screen flex items-center justify-center px-4 py-20">
         <div
           ref={parallaxRef}
           className="absolute inset-0 bg-gradient-to-br from-primary/5 via-accent/5 to-coral-pink/5"
@@ -279,11 +270,7 @@ export default function SarathiHomepage() {
 
       {/* Parallax Sections */}
       {parallaxSections.map((section, index) => (
-        <section
-          key={index}
-          id={section.id}
-          className="py-20 px-4 relative overflow-hidden"
-        >
+        <section key={index} id={section.id} className="py-20 px-4 relative overflow-hidden">
           <div className="container mx-auto">
             <div
               className={`grid lg:grid-cols-2 gap-16 items-center ${

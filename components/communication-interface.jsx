@@ -16,7 +16,7 @@ export default function CommunicationInterface() {
   const communicationFeatures = [
     {
       id: "accessible-communication",
-      title: "Speech ↔ Text Assist",
+      title: "Blind ↔ Deaf Communication",
       icon: "🗣️✍️",
       description:
         "Convert speech to text and text to speech for inclusive communication",
@@ -25,7 +25,7 @@ export default function CommunicationInterface() {
       color: "from-blue-500 via-purple-500 to-indigo-600",
       bgColor: "bg-gradient-to-br from-blue-50 to-purple-50",
       iconBg: "bg-gradient-to-r from-blue-500 to-indigo-500",
-      link: "https://sachinburnwal22.github.io/DeafBlind/",
+      link: "https://deaf-blind.vercel.app/",
     },
     {
       id: "picture-board",
@@ -42,7 +42,7 @@ export default function CommunicationInterface() {
     {
       id: "braille-keyboard",
       title: "Braille Keyboard",
-      icon: "Braille", // Using a placeholder word, you can replace with an emoji or icon component
+      icon: "B", // Using a placeholder word, you can replace with an emoji or icon component
       description:
         "Type using a virtual Braille keyboard with tactile and audio feedback.",
       longDescription:

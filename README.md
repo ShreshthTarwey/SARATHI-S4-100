@@ -1,122 +1,136 @@
-🎓✨ SARATHI — Supportive Assistive Reach for Accessible Teaching & Holistic Inclusion
+# 🎓✨ SARATHI — Supportive Assistive Reach for Accessible Teaching & Holistic Inclusion
 
-"Every child deserves to learn, express, and dream — regardless of ability."
+> _"Every child deserves to learn, express, and dream — regardless of ability."_
 
-🌈 About SARATHI
+---
 
-SARATHI (Supportive Assistive Reach for Accessible Teaching & Holistic Inclusion) is a visionary initiative dedicated to transforming education for children with disabilities — including those who are deaf, blind, mute, autistic, or have Down syndrome.
+## 🌈 About SARATHI
 
-SARATHI acts as a digital companion and guide, enabling communication, expression, and learning through a blend of AI, accessibility, and playful interaction.
+**SARATHI (Supportive Assistive Reach for Accessible Teaching & Holistic Inclusion)** is a visionary initiative dedicated to transforming education for children with disabilities — including those who are deaf, blind, mute, autistic, or have Down syndrome.
 
-It’s not just a website — it’s a movement for inclusive learning, bridging the gap between special needs education and modern technology.
+SARATHI acts as a **digital companion and guide**, enabling communication, expression, and learning through a blend of **AI, accessibility, and playful interaction**.
 
-🧭 Our Mission
+It’s not just a website — it’s a **movement for inclusive learning**, bridging the gap between special needs education and modern technology.
 
-To empower differently-abled children with a joyful, accessible, and personalized digital education environment — where learning feels like play and every child feels seen, heard, and understood.
+---
 
-💡 What SARATHI Aims to Do
+## 🧭 Our Mission
 
-SARATHI brings inclusivity to the core of education by offering:
+To **empower differently-abled children** with a joyful, accessible, and personalized digital education environment — where learning feels like play and every child feels seen, heard, and understood.
 
-👁️‍🗨️ Accessible Communication Tools
+---
 
+## 💡 What SARATHI Aims to Do
+
+SARATHI brings **inclusivity to the core of education** by offering:
+
+### 👁️‍🗨️ Accessible Communication Tools
 For children who are visually, vocally, or hearing impaired, SARATHI offers intuitive systems like:
+- 🗣️ Speech-to-text and text-to-speech converters  
+- 🎧 Voice navigation and hover-based audio guidance  
+- 🌐 AI-powered translation & communication bridge between users with different impairments  
 
-🗣️ Speech-to-text and text-to-speech converters
+---
 
-🎧 Voice navigation and hover-based audio guidance
-
-🌐 AI-powered translation & communication bridge between users with different impairments
-
-🧩 Learning Through Play (Gamified Education)
-
-For children with Down Syndrome and Autism Spectrum Disorder (ASD), SARATHI includes interactive educational games aligned with a school-certified syllabus — designed in collaboration with educators and therapists.
+### 🧩 Learning Through Play (Gamified Education)
+For children with **Down Syndrome** and **Autism Spectrum Disorder (ASD)**, SARATHI includes interactive educational games aligned with a school-certified syllabus — designed in collaboration with educators and therapists.
 
 These games focus on:
+- 🧠 Improving cognitive abilities and motor coordination  
+- 👥 Enhancing social understanding through fun, visual experiences  
+- 🌟 Building confidence and curiosity through reward-based progress  
 
-🧠 Improving cognitive abilities and motor coordination
+---
 
-👥 Enhancing social understanding through fun, visual experiences
-
-🌟 Building confidence and curiosity through reward-based progress
-
-🧠 AI-Powered Adaptation
-
+### 🧠 AI-Powered Adaptation
 SARATHI intelligently adapts to each learner’s needs and preferences:
+- ⚙️ Adjusts difficulty levels based on progress  
+- 👁️ Uses voice feedback and visual cues tailored to sensory capabilities  
+- 🕹️ Encourages independent exploration through assistive hints  
 
-⚙️ Adjusts difficulty levels based on progress
+---
 
-👁️ Uses voice feedback and visual cues tailored to sensory capabilities
+## 🎯 Our Vision
 
-🕹️ Encourages independent exploration through assistive hints
+To make **SARATHI** a **universal inclusive learning ecosystem**, where technology becomes a teacher, translator, and friend for every child — creating **classrooms without barriers and communication without limits**.
 
-🎯 Our Vision
+> Because inclusion isn’t a feature — it’s the foundation of education.
 
-To make SARATHI a universal inclusive learning ecosystem, where technology becomes a teacher, translator, and friend for every child — creating classrooms without barriers and communication without limits.
+---
 
-Because inclusion isn’t a feature — it’s the foundation of education.
+## 🪄 Key Highlights
 
-🪄 Key Highlights
-Category	Feature
-🎧 Accessibility	Speech & text communication bridge for visually and vocally impaired students
-🎮 Gamified Learning	Curriculum-based interactive games for Down Syndrome & Autism learners
-🗣️ Voice Commands	Navigate and learn through voice inputs
-🧏 Instant Translation	Converts speech/text between different disabilities seamlessly
-🌍 Dual Interface	Custom UI flows for deaf vs blind users, automatically adapted
-💫 AI Personalization	Smart learning path based on user’s abilities & engagement
-💬 Real-time Connection	Socket-based communication for live interactive learning
-🖌️ Design Philosophy
+| Category | Feature |
+|-----------|----------|
+| 🎧 **Accessibility** | Speech & text communication bridge for visually and vocally impaired students |
+| 🎮 **Gamified Learning** | Curriculum-based interactive games for Down Syndrome & Autism learners |
+| 🗣️ **Voice Commands** | Navigate and learn through voice inputs |
+| 🧏 **Instant Translation** | Converts speech/text between different disabilities seamlessly |
+| 🌍 **Dual Interface** | Custom UI flows for deaf vs blind users, automatically adapted |
+| 💫 **AI Personalization** | Smart learning path based on user’s abilities & engagement |
+| 💬 **Real-time Connection** | Socket-based communication for live interactive learning |
 
-SARATHI embraces a playful yet accessible visual language —
-bright colors, clear typography, large touch targets, and animated feedback make learning fun, safe, and intuitive for all users.
+---
+
+## 🖌️ Design Philosophy
+
+SARATHI embraces a **playful yet accessible visual language** —  
+bright colors, clear typography, large touch targets, and animated feedback make learning **fun, safe, and intuitive** for all users.
 
 Every design choice — from glowing icons to responsive voices — carries one principle:
 
-👉 Learning should be accessible to everyone, everywhere.
+> 👉 Learning should be accessible to everyone, everywhere.
 
-🌍 Impact Vision
+---
 
-🎓 Empower 1M+ differently-abled children with inclusive education tools
+## 🌍 Impact Vision
 
-💬 Bridge communication gaps in classrooms and homes
+- 🎓 Empower **1M+ differently-abled children** with inclusive education tools  
+- 💬 Bridge **communication gaps** in classrooms and homes  
+- 🧩 Provide educators with **AI-driven teaching aids**  
+- ❤️ Build **confidence and independence** in special-needs learners  
 
-🧩 Provide educators with AI-driven teaching aids
+---
 
-❤️ Build confidence and independence in special-needs learners
+## 🤝 In Collaboration With
 
-🤝 In Collaboration With
+**Educators • Therapists • Accessibility Experts • AI Developers**
 
-Educators • Therapists • Accessibility Experts • AI Developers
+Together, we’re creating an ecosystem that **redefines what inclusive education means** in the digital era.
 
-Together, we’re creating an ecosystem that redefines what inclusive education means in the digital era.
+---
 
-💫 In Essence
+## 💫 In Essence
 
-SARATHI is more than a platform.
-It’s a friend, a teacher, and a voice of hope for every child who learns differently — guiding them step by step towards a brighter, more inclusive future.
+**SARATHI is more than a platform.**  
+It’s a **friend**, a **teacher**, and a **voice of hope** for every child who learns differently — guiding them step by step towards a brighter, more inclusive future.
 
-🌟 "When technology becomes compassionate, learning becomes limitless."
+> 🌟 _"When technology becomes compassionate, learning becomes limitless."_
 
-⚙️ Project Setup Guide
+---
 
-Follow the steps below to run SARATHI locally on your machine.
+# ⚙️ Project Setup Guide
 
-🧱 Tech Stack
+Follow the steps below to run **SARATHI** locally on your machine.
 
-Frontend: Next.js + React.js + Tailwind CSS
+---
 
-Backend: Node.js (Next.js API Routes)
+## 🧱 Tech Stack
 
-Database: MongoDB (via Mongoose)
+- **Frontend:** Next.js + React.js + Tailwind CSS  
+- **Backend:** Node.js (Next.js API Routes)  
+- **Database:** MongoDB (via Mongoose)  
+- **Language:** JavaScript / JSX  
+- **AI & Accessibility APIs:** SpeechSynthesis, SpeechRecognition, Custom ML/AI modules  
+- **Real-time Communication:** Socket.io  
 
-Language: JavaScript / JSX
+---
 
-AI & Accessibility APIs: SpeechSynthesis, SpeechRecognition, Custom ML/AI modules
+## 🚀 Getting Started
 
-Real-time Communication: Socket.io
+### 1️⃣ Clone the Repository
 
-🚀 Getting Started
-1️⃣ Clone the Repository
+```bash
 git clone https://github.com/<your-username>/sarathi.git
 cd sarathi
 
@@ -135,70 +149,14 @@ In the project root, create a .env.local file and add your MongoDB connection st
 MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/sarathi
 NEXT_PUBLIC_APP_NAME=SARATHI
 
-
-🧩 If you’re using other APIs (like text-to-speech, translation, or socket servers), include them here too.
-
 4️⃣ Run the Development Server
 npm run dev
 # or
 yarn dev
 
-
 Then visit 👉 http://localhost:3000
 
 You should see the SARATHI home page up and running! 🎉
-
-5️⃣ Build for Production (Optional)
-
-When ready for deployment:
-
-npm run build
-npm start
-
-🗂️ Project Structure
-sarathi/
-│
-├── public/                 # Static assets (icons, images, videos)
-├── pages/                  # Next.js pages & API routes
-│   ├── api/                # Backend API routes (MongoDB, Socket.io, etc.)
-│   └── index.jsx           # Main landing page
-│
-├── components/             # Reusable UI components
-├── styles/                 # Global and Tailwind styles
-├── lib/                    # Utility functions & DB connection
-├── models/                 # MongoDB schemas (Mongoose)
-├── package.json
-├── tailwind.config.js
-├── next.config.js
-└── .env.local              # Environment configuration
-
-🧠 Developer Notes
-
-All accessibility features (speech synthesis, recognition, hover guidance) are powered using Web Speech API and custom handlers.
-
-MongoDB stores user data, progress, and accessibility preferences.
-
-The app uses Next.js API Routes to handle backend logic — no separate Express server needed.
-
-Tailwind CSS ensures responsive, accessible, and vibrant UI design.
-
-🧑‍💻 Contributing
-
-We welcome all developers, educators, and accessibility enthusiasts to contribute.
-
-Fork the repository
-
-Create your feature branch (git checkout -b feature/awesome-feature)
-
-Commit your changes (git commit -m "Add new accessibility feature")
-
-Push to the branch (git push origin feature/awesome-feature)
-
-Open a Pull Request 🚀
-
-📄 License
-
-This project is licensed under the MIT License — feel free to use, modify, and distribute with attribution.
 
 🏁 Final Note
 

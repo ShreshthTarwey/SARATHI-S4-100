@@ -24,5 +24,10 @@
       ]
     }
   ],
-  "rewrites": []
+  "rewrites": [
+    {
+      "source": "/education/:path*",
+      "destination": "https://education-section.vercel.app/:path*"
+    }
+  ]
 }

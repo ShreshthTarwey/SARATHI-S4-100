@@ -108,3 +108,7 @@ It’s a **friend**, a **teacher**, and a **voice of hope** for every child who 
 ---
 
 > 🌟 _"When technology becomes compassionate, learning becomes limitless."_
+
+
+## More Features are here, the readme will be updated shortly
+

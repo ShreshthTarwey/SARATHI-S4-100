@@ -1,31 +1,31 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import BrailleInput from "@/components/BrailleInput";
+import { useState } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Textarea } from "@/components/ui/textarea"
+import { Button } from "@/components/ui/button"
+import Link from 'next/link';
+import BrailleInput from '@/components/BrailleInput';
+
 
 export default function CommunicationInterface() {
-  const [activeFeature, setActiveFeature] = useState(null);
-  const [textInput, setTextInput] = useState("");
-  const [voiceInput, setVoiceInput] = useState("");
-  const [selectedIcons, setSelectedIcons] = useState([]);
+  const [activeFeature, setActiveFeature] = useState(null)
+  const [textInput, setTextInput] = useState("")
+  const [voiceInput, setVoiceInput] = useState("")
+  const [selectedIcons, setSelectedIcons] = useState([])
 
   const communicationFeatures = [
     {
       id: "accessible-communication",
-      title: "Blind ↔ Deaf Communication",
+      title: "Speech ↔ Text Assist",
       icon: "🗣️✍️",
-      description:
-        "Convert speech to text and text to speech for inclusive communication",
+      description: "Convert speech to text and text to speech for inclusive communication",
       longDescription:
         "High-quality text-to-speech for the visually impaired and accurate speech-to-text transcription for the hearing impaired.",
       color: "from-blue-500 via-purple-500 to-indigo-600",
       bgColor: "bg-gradient-to-br from-blue-50 to-purple-50",
       iconBg: "bg-gradient-to-r from-blue-500 to-indigo-500",
-      link: "https://deaf-blind.vercel.app/",
+      link: "https://deaf-blind.vercel.app/"
     },
     {
       id: "picture-board",
@@ -37,46 +37,42 @@ export default function CommunicationInterface() {
       color: "from-emerald-400 via-teal-400 to-cyan-600",
       bgColor: "bg-gradient-to-br from-emerald-50 to-teal-50",
       iconBg: "bg-gradient-to-r from-emerald-400 to-teal-500",
-      link: "https://picture-communication.vercel.app",
+      link: "https://picture-communication.vercel.app/"
     },
     {
       id: "braille-keyboard",
       title: "Braille Keyboard",
-      icon: "B", // Using a placeholder word, you can replace with an emoji or icon component
-      description:
-        "Type using a virtual Braille keyboard with tactile and audio feedback.",
-      longDescription:
-        "Practice and type in Braille using your keyboard or by tapping the screen. Instant audio and text feedback for each character.",
+      icon: "Braille", // Using a placeholder word, you can replace with an emoji or icon component
+      description: "Type using a virtual Braille keyboard with tactile and audio feedback.",
+      longDescription: "Practice and type in Braille using your keyboard or by tapping the screen. Instant audio and text feedback for each character.",
       color: "from-gray-400 via-gray-500 to-gray-600",
       bgColor: "bg-gradient-to-br from-gray-50 to-gray-100",
       iconBg: "bg-gradient-to-r from-gray-500 to-gray-700",
-      link: "/braille", // This internal link is the key!
+      link: "/braille" // This internal link is the key!
     },
     {
       id: "video-messaging",
       title: "Video Messages",
       icon: "📹",
-      description:
-        "Talk through your video messages with automatic captions and accessibility",
+      description: "Talk through your video messages with automatic captions and accessibility",
       longDescription:
         "Create expressive video messages with real-time captions, sign language support, and easy sharing options.",
       color: "from-orange-400 via-red-400 to-pink-600",
       bgColor: "bg-gradient-to-br from-orange-50 to-red-50",
       iconBg: "bg-gradient-to-r from-orange-400 to-red-500",
-      link: "https://webrtc-8flx.onrender.com/",
+      link: "https://webrtc-8flx.onrender.com/"
     },
     {
       id: "live-chat",
       title: "Live Chat",
       icon: "💬",
-      description:
-        "Real-time conversation mode with friends, family, and caregivers",
+      description: "Real-time conversation mode with friends, family, and caregivers",
       longDescription:
         "Interactive chat interface with emoji support, quick responses, and accessibility features for seamless conversations.",
       color: "from-violet-400 via-purple-400 to-indigo-600",
       bgColor: "bg-gradient-to-br from-violet-50 to-purple-50",
       iconBg: "bg-gradient-to-r from-violet-400 to-purple-500",
-      link: "https://quickchat.greatstack.in/",
+      link: "https://quickchat.greatstack.in/"
     },
     {
       id: "instant-translation",
@@ -88,7 +84,7 @@ export default function CommunicationInterface() {
       color: "from-rose-400 via-pink-400 to-red-600",
       bgColor: "bg-gradient-to-br from-rose-50 to-pink-50",
       iconBg: "bg-gradient-to-r from-rose-400 to-pink-500",
-      link: "https://multi-language-translator-nine.vercel.app/",
+      link: "https://multi-language-translator-nine.vercel.app/"
     },
     {
       id: "symbol-to-speech",
@@ -105,15 +101,26 @@ export default function CommunicationInterface() {
       id: "speech-to-symbol",
       title: "Speech to Symbol",
       icon: "🗣️",
-      description:
-        "Speak naturally and see your words converted to visual symbols",
+      description: "Speak naturally and see your words converted to visual symbols",
       longDescription:
         "Revolutionary technology that transforms spoken language into meaningful symbol sequences for visual learners.",
       color: "from-lime-400 via-green-400 to-emerald-600",
       bgColor: "bg-gradient-to-br from-lime-50 to-green-50",
       iconBg: "bg-gradient-to-r from-lime-400 to-green-500",
     },
-  ];
+    {
+      id: "Braillllll",
+      title: "Speech to Symbol",
+      icon: "🗣️",
+      description: "Speak naturally and see your words converted to visual symbols",
+      longDescription:
+        "Revolutionary technology that transforms spoken language into meaningful symbol sequences for visual learners.",
+      color: "from-lime-400 via-green-400 to-emerald-600",
+      bgColor: "bg-gradient-to-br from-lime-50 to-green-50",
+      iconBg: "bg-gradient-to-r from-lime-400 to-green-500",
+      component: "https://multi-language-translator-nine.vercel.app/"
+    }
+  ]
 
   const communicationIcons = [
     { id: 1, emoji: "😊", label: "Happy", category: "emotions" },
@@ -128,7 +135,7 @@ export default function CommunicationInterface() {
     { id: 10, emoji: "🎵", label: "Music", category: "activities" },
     { id: 11, emoji: "❤️", label: "Love", category: "emotions" },
     { id: 12, emoji: "🙏", label: "Please", category: "greetings" },
-  ];
+  ]
 
   const communicationSymbols = [
     { id: 1, symbol: "🏃", word: "run", category: "actions" },
@@ -139,27 +146,27 @@ export default function CommunicationInterface() {
     { id: 6, symbol: "🔥", word: "hot", category: "descriptors" },
     { id: 7, symbol: "❄️", word: "cold", category: "descriptors" },
     { id: 8, symbol: "🎪", word: "fun", category: "emotions" },
-  ];
+  ]
 
   const handleFeatureClick = (featureId) => {
-    setActiveFeature(activeFeature === featureId ? null : featureId);
-  };
+    setActiveFeature(activeFeature === featureId ? null : featureId)
+  }
 
   const handleIconSelect = (icon) => {
-    setSelectedIcons((prev) => [...prev, icon]);
-  };
+    setSelectedIcons((prev) => [...prev, icon])
+  }
 
   const clearSelectedIcons = () => {
-    setSelectedIcons([]);
-  };
+    setSelectedIcons([])
+  }
 
   const speakSelectedIcons = () => {
-    const message = selectedIcons.map((icon) => icon.label).join(" ");
+    const message = selectedIcons.map((icon) => icon.label).join(" ")
     if (message && "speechSynthesis" in window) {
-      const utterance = new SpeechSynthesisUtterance(message);
-      speechSynthesis.speak(utterance);
+      const utterance = new SpeechSynthesisUtterance(message)
+      speechSynthesis.speak(utterance)
     }
-  };
+  }
 
   return (
     // <BrailleInput />
@@ -193,23 +200,22 @@ export default function CommunicationInterface() {
             }}
           >
             <div
-              className={`w-3 h-3 rounded-full ${
-                i % 8 === 0
+              className={`w-3 h-3 rounded-full ${i % 8 === 0
                   ? "bg-purple-400"
                   : i % 8 === 1
-                  ? "bg-cyan-400"
-                  : i % 8 === 2
-                  ? "bg-emerald-400"
-                  : i % 8 === 3
-                  ? "bg-orange-400"
-                  : i % 8 === 4
-                  ? "bg-violet-400"
-                  : i % 8 === 5
-                  ? "bg-rose-400"
-                  : i % 8 === 6
-                  ? "bg-amber-400"
-                  : "bg-lime-400"
-              }`}
+                    ? "bg-cyan-400"
+                    : i % 8 === 2
+                      ? "bg-emerald-400"
+                      : i % 8 === 3
+                        ? "bg-orange-400"
+                        : i % 8 === 4
+                          ? "bg-violet-400"
+                          : i % 8 === 5
+                            ? "bg-rose-400"
+                            : i % 8 === 6
+                              ? "bg-amber-400"
+                              : "bg-lime-400"
+                }`}
             ></div>
           </div>
         ))}
@@ -221,8 +227,7 @@ export default function CommunicationInterface() {
             Communication Hub
           </h1>
           <p className="font-body text-2xl text-foreground/80 max-w-3xl mx-auto leading-relaxed">
-            Express yourself in your own unique way - through words, voice,
-            pictures, symbols, or video
+            Express yourself in your own unique way - through words, voice, pictures, symbols, or video
           </p>
           <div className="mt-8 flex justify-center">
             <div className="w-24 h-1 bg-gradient-to-r from-purple-400 to-cyan-400 rounded-full animate-pulse"></div>
@@ -233,11 +238,8 @@ export default function CommunicationInterface() {
           {communicationFeatures.map((feature, index) => (
             <Card
               key={feature.id}
-              className={`group cursor-pointer transition-all duration-500 hover:scale-105 hover:-translate-y-2 ${
-                activeFeature === feature.id
-                  ? "ring-4 ring-purple-400/50 shadow-2xl"
-                  : "hover:shadow-xl"
-              } bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl overflow-hidden animate-fade-in-up`}
+              className={`group cursor-pointer transition-all duration-500 hover:scale-105 hover:-translate-y-2 ${activeFeature === feature.id ? "ring-4 ring-purple-400/50 shadow-2xl" : "hover:shadow-xl"
+                } bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl overflow-hidden animate-fade-in-up`}
               style={{ animationDelay: `${index * 0.1}s` }}
               onClick={() => handleFeatureClick(feature.id)}
             >
@@ -265,11 +267,8 @@ export default function CommunicationInterface() {
                   {feature.description}
                 </p>
                 <div
-                  className={`transition-all duration-500 overflow-hidden ${
-                    activeFeature === feature.id
-                      ? "max-h-40 opacity-100"
-                      : "max-h-0 opacity-0"
-                  }`}
+                  className={`transition-all duration-500 overflow-hidden ${activeFeature === feature.id ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
+                    }`}
                 >
                   <div className="pt-4 border-t border-white/20">
                     <p className="font-body text-xs text-foreground/60 leading-relaxed mb-3">
@@ -288,6 +287,7 @@ export default function CommunicationInterface() {
                       </Button>
                     </a>
                   </div>
+
                 </div>
               </CardContent>
             </Card>
@@ -299,11 +299,7 @@ export default function CommunicationInterface() {
             <Card className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl overflow-hidden">
               <CardHeader className="text-center pb-6 bg-gradient-to-r from-purple-500/10 to-cyan-500/10">
                 <CardTitle className="font-heading text-3xl text-gradient">
-                  {
-                    communicationFeatures.find((f) => f.id === activeFeature)
-                      ?.title
-                  }{" "}
-                  Demo
+                  {communicationFeatures.find((f) => f.id === activeFeature)?.title} Demo
                 </CardTitle>
                 <p className="font-body text-lg text-foreground/70 mt-2">
                   Interactive preview - Full functionality coming soon!
@@ -346,12 +342,8 @@ export default function CommunicationInterface() {
                           key={icon.id}
                           className="flex flex-col items-center p-4 bg-white/20 backdrop-blur-sm rounded-2xl border border-white/30 hover:bg-white/30 hover:scale-110 transition-all duration-300"
                         >
-                          <span className="text-4xl mb-2 animate-bounce-gentle">
-                            {icon.emoji}
-                          </span>
-                          <span className="font-body text-sm text-foreground/80">
-                            {icon.label}
-                          </span>
+                          <span className="text-4xl mb-2 animate-bounce-gentle">{icon.emoji}</span>
+                          <span className="font-body text-sm text-foreground/80">{icon.label}</span>
                         </button>
                       ))}
                     </div>
@@ -370,9 +362,7 @@ export default function CommunicationInterface() {
                       <span className="text-6xl animate-pulse">📹</span>
                     </div>
                     <div className="space-y-4">
-                      <p className="font-body text-lg text-foreground/70">
-                        Video recording with automatic captions
-                      </p>
+                      <p className="font-body text-lg text-foreground/70">Video recording with automatic captions</p>
                       <Button className="bg-gradient-to-r from-orange-400 to-red-500 hover:scale-105 transition-all duration-300 px-8 py-3 rounded-2xl text-lg">
                         <span className="mr-2">🎬</span>
                         Start Recording
@@ -387,9 +377,7 @@ export default function CommunicationInterface() {
                       <div className="space-y-4">
                         <div className="flex justify-start">
                           <div className="bg-gradient-to-r from-violet-400 to-purple-500 text-white px-4 py-2 rounded-2xl rounded-bl-sm max-w-xs">
-                            <p className="font-body">
-                              Hello! How are you today?
-                            </p>
+                            <p className="font-body">Hello! How are you today?</p>
                           </div>
                         </div>
                         <div className="flex justify-end">
@@ -415,22 +403,16 @@ export default function CommunicationInterface() {
                   <div className="space-y-6">
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="space-y-3">
-                        <label className="font-body text-sm text-foreground/70">
-                          Original Text
-                        </label>
+                        <label className="font-body text-sm text-foreground/70">Original Text</label>
                         <Textarea
                           placeholder="Enter text to translate..."
                           className="min-h-32 font-body resize-none bg-white/20 border-white/30 rounded-2xl backdrop-blur-sm"
                         />
                       </div>
                       <div className="space-y-3">
-                        <label className="font-body text-sm text-foreground/70">
-                          Translated Text
-                        </label>
+                        <label className="font-body text-sm text-foreground/70">Translated Text</label>
                         <div className="min-h-32 p-4 bg-white/10 border border-white/20 rounded-2xl backdrop-blur-sm">
-                          <p className="font-body text-foreground/60 italic">
-                            Translation will appear here...
-                          </p>
+                          <p className="font-body text-foreground/60 italic">Translation will appear here...</p>
                         </div>
                       </div>
                     </div>
@@ -457,20 +439,14 @@ export default function CommunicationInterface() {
                           key={symbol.id}
                           className="flex flex-col items-center p-4 bg-white/20 backdrop-blur-sm rounded-2xl border border-white/30 hover:bg-white/30 hover:scale-110 transition-all duration-300"
                         >
-                          <span className="text-4xl mb-2 animate-bounce-gentle">
-                            {symbol.symbol}
-                          </span>
-                          <span className="font-body text-sm text-foreground/80">
-                            {symbol.word}
-                          </span>
+                          <span className="text-4xl mb-2 animate-bounce-gentle">{symbol.symbol}</span>
+                          <span className="font-body text-sm text-foreground/80">{symbol.word}</span>
                         </button>
                       ))}
                     </div>
                     <div className="text-center space-y-4">
                       <div className="bg-white/10 rounded-2xl p-4">
-                        <p className="font-body text-lg text-foreground/70">
-                          Selected: "I want pizza for the party"
-                        </p>
+                        <p className="font-body text-lg text-foreground/70">Selected: "I want pizza for the party"</p>
                       </div>
                       <Button className="bg-gradient-to-r from-amber-400 to-yellow-500 hover:scale-105 transition-all duration-300 px-8 py-3 rounded-2xl text-lg">
                         <span className="mr-2">🔊</span>
@@ -486,30 +462,18 @@ export default function CommunicationInterface() {
                       <span className="text-6xl">🗣️</span>
                     </div>
                     <div className="space-y-4">
-                      <p className="font-body text-lg text-foreground/70">
-                        Speak and watch your words become symbols
-                      </p>
+                      <p className="font-body text-lg text-foreground/70">Speak and watch your words become symbols</p>
                       <div className="bg-white/10 rounded-2xl p-6">
                         <div className="flex justify-center space-x-2 flex-wrap gap-2">
-                          <span className="text-3xl animate-bounce-gentle">
-                            🏃
-                          </span>
-                          <span
-                            className="text-3xl animate-bounce-gentle"
-                            style={{ animationDelay: "0.1s" }}
-                          >
+                          <span className="text-3xl animate-bounce-gentle">🏃</span>
+                          <span className="text-3xl animate-bounce-gentle" style={{ animationDelay: "0.1s" }}>
                             🏠
                           </span>
-                          <span
-                            className="text-3xl animate-bounce-gentle"
-                            style={{ animationDelay: "0.2s" }}
-                          >
+                          <span className="text-3xl animate-bounce-gentle" style={{ animationDelay: "0.2s" }}>
                             🍎
                           </span>
                         </div>
-                        <p className="font-body text-sm text-foreground/60 mt-2">
-                          Symbols will appear as you speak
-                        </p>
+                        <p className="font-body text-sm text-foreground/60 mt-2">Symbols will appear as you speak</p>
                       </div>
                       <Button className="bg-gradient-to-r from-lime-400 to-green-500 hover:scale-105 transition-all duration-300 px-8 py-3 rounded-2xl text-lg">
                         <span className="mr-2">🎤</span>
@@ -525,12 +489,9 @@ export default function CommunicationInterface() {
 
         <div className="text-center mt-16 animate-fade-in-up">
           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-8">
-            <h3 className="font-heading text-3xl text-gradient mb-4">
-              Ready to Start Communicating?
-            </h3>
+            <h3 className="font-heading text-3xl text-gradient mb-4">Ready to Start Communicating?</h3>
             <p className="font-body text-lg text-foreground/70 mb-6 max-w-2xl mx-auto">
-              Choose any communication method above to begin expressing yourself
-              in your own unique way.
+              Choose any communication method above to begin expressing yourself in your own unique way.
             </p>
             <div className="flex justify-center space-x-4">
               <Button className="bg-gradient-to-r from-purple-400 to-pink-500 hover:scale-105 transition-all duration-300 px-8 py-3 rounded-2xl text-lg">
@@ -547,5 +508,5 @@ export default function CommunicationInterface() {
         </div>
       </div>
     </div>
-  );
+  )
 }

@@ -128,13 +128,13 @@ Follow the steps below to run **SARATHI** locally on your machine.
 
 ## 🚀 Getting Started
 
-### 1️⃣ Clone the Repository
+1️⃣ Clone the Repository
 
 ```bash
 git clone https://github.com/<your-username>/sarathi.git
 cd sarathi
 
-### 2️⃣ Install Dependencies
+2️⃣ Install Dependencies
 
 Make sure Node.js (>=18) and npm or yarn are installed.
 
@@ -142,14 +142,14 @@ npm install
 # or
 yarn install
 
-### 3️⃣ Create Environment File
+3️⃣ Create Environment File
 
 In the project root, create a .env.local file and add your MongoDB connection string and other required environment variables:
 
 MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/sarathi
 NEXT_PUBLIC_APP_NAME=SARATHI
 
-### 4️⃣ Run the Development Server
+4️⃣ Run the Development Server
 npm run dev
 # or
 yarn dev

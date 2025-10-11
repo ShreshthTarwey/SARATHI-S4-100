@@ -37,12 +37,12 @@ export default function CommunicationInterface() {
       color: "from-emerald-400 via-teal-400 to-cyan-600",
       bgColor: "bg-gradient-to-br from-emerald-50 to-teal-50",
       iconBg: "bg-gradient-to-r from-emerald-400 to-teal-500",
-      link: "https://shivammodi001.github.io/Picture-Communication/ ",
+      link: "https://picture-communication.vercel.app",
     },
     {
       id: "braille-keyboard",
       title: "Braille Keyboard",
-      icon: "Braille", // Using a placeholder word, you can replace with an emoji or icon component
+      icon: "B", // Using a placeholder word, you can replace with an emoji or icon component
       description:
         "Type using a virtual Braille keyboard with tactile and audio feedback.",
       longDescription:
@@ -112,19 +112,6 @@ export default function CommunicationInterface() {
       color: "from-lime-400 via-green-400 to-emerald-600",
       bgColor: "bg-gradient-to-br from-lime-50 to-green-50",
       iconBg: "bg-gradient-to-r from-lime-400 to-green-500",
-    },
-    {
-      id: "Braillllll",
-      title: "Speech to Symbol",
-      icon: "🗣️",
-      description:
-        "Speak naturally and see your words converted to visual symbols",
-      longDescription:
-        "Revolutionary technology that transforms spoken language into meaningful symbol sequences for visual learners.",
-      color: "from-lime-400 via-green-400 to-emerald-600",
-      bgColor: "bg-gradient-to-br from-lime-50 to-green-50",
-      iconBg: "bg-gradient-to-r from-lime-400 to-green-500",
-      component: "https://multi-language-translator-nine.vercel.app/",
     },
   ];
 

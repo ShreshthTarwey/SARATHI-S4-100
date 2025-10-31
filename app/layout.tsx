@@ -41,6 +41,51 @@ export default function RootLayout({
   // Server-side route protection handled by Next middleware
   return (
     <html lang="en">
+      <Script id="equalweb-config" strategy="beforeInteractive">
+        {`window.interdeal = {
+  get sitekey (){ return "83bae88ac42e5ead2a53c015efa2c042"} ,
+  get domains(){
+    return {
+      "js": "https://cdn.equalweb.com/",
+      "acc": "https://access.equalweb.com/"
+    }
+  },
+  "Position": "left",
+  "Menulang": "EN",
+  "draggable": true,
+  "btnStyle": {
+    "vPosition": [
+      "80%",
+      "80%"
+    ],
+    "margin": [
+      "0",
+      "0"
+    ],
+    "scale": [
+      "0.5",
+      "0.5"
+    ],
+    "color": {
+      "main": "#0a51f2",
+      "second": "#ffffff"
+    },
+    "icon": {
+      "outline": true,
+      "outlineColor": "#ffffff",
+      "type":  11 ,
+      "shape": "circle"
+    }
+  },
+                                  
+};`}
+      </Script>
+      <Script
+        id="sienna-accessibility"
+        src="https://cdn.jsdelivr.net/npm/sienna-accessibility@latest/dist/sienna-accessibility.umd.js"
+        strategy="afterInteractive"
+        defer
+      />
       <body
         className={`font-sans ${fredokaOne.variable} ${poppins.variable} antialiased`}
       >

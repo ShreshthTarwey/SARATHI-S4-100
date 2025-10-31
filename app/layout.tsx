@@ -11,6 +11,7 @@ import "./globals.css";
 // 1. ADDED: Import your voice control components
 import { VoiceControlProvider } from "@/context/VoiceControlContext";
 import GlobalVoiceControl from "@/components/GlobalVoiceControl";
+import Script from "next/script";
 
 // 2. ADDED: Import authentication provider
 import { AuthProvider } from "@/context/AuthContext";
@@ -41,7 +42,6 @@ export default function RootLayout({
   // Server-side route protection handled by Next middleware
   return (
     <html lang="en">
-     
       <body
         className={`font-sans ${fredokaOne.variable} ${poppins.variable} antialiased`}
       >
@@ -64,6 +64,11 @@ export default function RootLayout({
         {/* These components are outside the providers, which is perfectly fine */}
         <Analytics />
         <TawkWidget />
+        {/* Sienna Accessibility Widget Script - Next.js recommended usage */}
+        <Script
+          src="https://cdn.jsdelivr.net/npm/sienna-accessibility@latest/dist/sienna-accessibility.umd.js"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );

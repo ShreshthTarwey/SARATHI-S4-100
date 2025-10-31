@@ -6317,7 +6317,7 @@ export const useVoiceControl = () => {
   const pageSpecificCommandsRef = useRef<string[]>([]);
   const shouldBeListeningRef = useRef(false);
   
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
   const router = useRouter(); 
 
   const handleApiResponse = useCallback((response: ApiResponse) => {
@@ -6507,7 +6507,7 @@ export const useVoiceControl = () => {
           }
       }
       try {
-          const response = await fetch(`${API_URL}/process-command`, {
+          const response = await fetch(`${API_URL}/emergency-alert`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ text: speechText, page_commands: pageSpecificCommandsRef.current, location: location })

@@ -4407,6 +4407,1806 @@
 //   return { isListening, status, startListening, stopListening, setPageSpecificCommands };
 // };
 
+// "use client";
+
+// import { useState, useRef, useCallback, useEffect } from 'react';
+// import { useRouter } from 'next/navigation';
+
+// // --- Interface definitions (unchanged) ---
+// interface WebsiteCommandPayload {
+//   action: 'scroll' | 'navigate' | 'read' | 'unknown' | 'click' | 'goToPage' | 'fillInput';
+//   target: string | null;
+//   direction?: 'up' | 'down' | 'top' | 'bottom' | null;
+//   value?: string;
+// }
+// interface GeneralAnswerPayload { text_to_speak: string; }
+// interface HelpActionPayload { status: 'success' | 'failed'; }
+// interface PlayGamePayload { name: string; url: string; }
+// interface ApiResponse {
+//   type: 'WEBSITE_COMMAND' | 'GENERAL_ANSWER' | 'HELP_ACTION' | 'PLAY_GAME';
+//   payload: WebsiteCommandPayload | GeneralAnswerPayload | HelpActionPayload | PlayGamePayload;
+// }
+// declare global { interface Window { webkitSpeechRecognition: any; } }
+
+// // --- Helper Functions (unchanged) ---
+// const speakFeedback = (text: string) => {
+//   if ('speechSynthesis' in window) {
+//     speechSynthesis.cancel();
+//     const utterance = new SpeechSynthesisUtterance(text);
+//     utterance.rate = 0.9;
+//     utterance.pitch = 1.1;
+//     speechSynthesis.speak(utterance);
+//   }
+// };
+
+// const getUserLocation = (): Promise<{ latitude: number; longitude: number } | null> => {
+//   return new Promise((resolve) => {
+//     if (!navigator.geolocation) {
+//       console.error("Geolocation is not supported by this browser.");
+//       resolve(null);
+//     }
+//     navigator.geolocation.getCurrentPosition(
+//       (position) => resolve({ latitude: position.coords.latitude, longitude: position.coords.longitude }),
+//       () => { console.error("Failed to get user location."); resolve(null); }
+//     );
+//   });
+// };
+
+// const findElementByTextAndClick = (text: string): boolean => {
+//   if (!text) return false;
+//   const sanitizedText = text.trim().toLowerCase();
+//   const elements = document.querySelectorAll('a, button, [role="button"], [role="link"]');
+//   for (const element of Array.from(elements)) {
+//     if (element.textContent?.trim().toLowerCase() === sanitizedText) {
+//       (element as HTMLElement).click();
+//       return true;
+//     }
+//   }
+//   return false;
+// };
+
+// const findInputByLabelAndFill = (labelText: string, value: string): boolean => {
+//     if (!labelText || value === undefined) return false;
+//     const sanitizedLabel = labelText.trim().toLowerCase();
+//     const fillAndDispatch = (input: HTMLInputElement | HTMLTextAreaElement) => {
+//         const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
+//         if (nativeInputValueSetter) {
+//             nativeInputValueSetter.call(input, value);
+//         } else {
+//             input.value = value;
+//         }
+//         const inputEvent = new Event('input', { bubbles: true, cancelable: true });
+//         const changeEvent = new Event('change', { bubbles: true, cancelable: true });
+//         input.dispatchEvent(inputEvent);
+//         input.dispatchEvent(changeEvent);
+//     };
+//     const labels = document.querySelectorAll('label');
+//     for (const label of Array.from(labels)) {
+//         if (label.textContent?.trim().toLowerCase().includes(sanitizedLabel)) {
+//             const inputId = label.getAttribute('for');
+//             const input = inputId ? document.getElementById(inputId) as HTMLInputElement | HTMLTextAreaElement : null;
+//             if (input) { fillAndDispatch(input); return true; }
+//         }
+//     }
+//     const inputs = document.querySelectorAll('input, textarea');
+//     for (const input of Array.from(inputs)) {
+//         const ariaLabel = input.getAttribute('aria-label')?.toLowerCase();
+//         const placeholder = input.getAttribute('placeholder')?.toLowerCase();
+//         if (ariaLabel?.includes(sanitizedLabel) || placeholder?.includes(sanitizedLabel)) {
+//             fillAndDispatch(input as HTMLInputElement);
+//             return true;
+//         }
+//     }
+//     return false;
+// };
+
+// // --- Main Hook ---
+// export const useVoiceControl = () => {
+//   const [isListening, setIsListening] = useState(false);
+//   const [status, setStatus] = useState('Click the mic to start');
+  
+//   const recognitionRef = useRef<SpeechRecognition | null>(null);
+//   const isProcessingRef = useRef(false);
+//   const pageSpecificCommandsRef = useRef<string[]>([]);
+//   const shouldBeListeningRef = useRef(false);
+  
+//   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000';
+//   const router = useRouter(); 
+
+//   const handleApiResponse = useCallback((response: ApiResponse) => {
+//     console.log("Handling API Response:", response);
+//     if (response.type === 'WEBSITE_COMMAND') {
+//       const command = response.payload as WebsiteCommandPayload;
+//       setStatus(`Command: ${command.action}`);
+//       // Fallbacks in case "Fast Path" fails or AI is needed
+//       switch (command.action) {
+//         case 'scroll':
+//           if (command.direction === 'down') { window.scrollBy({ top: 500, behavior: 'smooth' }); speakFeedback("Scrolling down."); }
+//           else if (command.direction === 'up') { window.scrollBy({ top: -500, behavior: 'smooth' }); speakFeedback("Scrolling up."); }
+//           else if (command.direction === 'top' || command.target === 'top') { window.scrollTo({ top: 0, behavior: 'smooth' }); speakFeedback("Scrolling to top."); }
+//           else if (command.direction === 'bottom' || command.target === 'bottom') { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); speakFeedback("Scrolling to bottom."); }
+//           break;
+//         case 'navigate':
+//           if (command.target) {
+//             const element = document.getElementById(command.target);
+//             if (element) { element.scrollIntoView({ behavior: 'smooth', block: 'start' }); speakFeedback(`Navigating to ${command.target}.`); }
+//           }
+//           break;
+//         case 'goToPage':
+//            if (command.target) {
+//              speakFeedback(`Going to the ${command.target.replace('/', '')} page.`);
+//              router.push(command.target);
+//            }
+//            break;
+//         case 'click':
+//            if (command.target) {
+//              const success = findElementByTextAndClick(command.target);
+//              if (success) { speakFeedback(`Clicked ${command.target}.`); }
+//            }
+//            break;
+//         case 'fillInput':
+//            if (command.target && command.value !== undefined) {
+//              const success = findInputByLabelAndFill(command.target, command.value);
+//              if (success) { speakFeedback(`Okay, I've filled the ${command.target} field.`); }
+//            }
+//            break;
+//         case 'unknown':
+//           speakFeedback("Sorry, I didn't understand that command.");
+//           break;
+//       }
+//     } else if (response.type === 'GENERAL_ANSWER') {
+//       const answer = response.payload as GeneralAnswerPayload;
+//       setStatus('Answering question...');
+//       speakFeedback(answer.text_to_speak);
+//     } else if (response.type === 'HELP_ACTION') {
+//       const helpAction = response.payload as HelpActionPayload;
+//       if (helpAction.status === 'success') {
+//         setStatus('Emergency alerts sent.');
+//         speakFeedback('Emergency alerts have been sent via email and SMS with your location.');
+//       } else {
+//         setStatus('Failed to send alerts.');
+//         speakFeedback('Sorry, there was a problem sending the emergency alerts.');
+//       }
+//     }
+//   }, [router]);
+
+//   const processVoiceCommand = useCallback(async (speechText: string) => {
+//     if (isProcessingRef.current) return;
+//     isProcessingRef.current = true;
+    
+//     const normalizedText = speechText.toLowerCase().trim().replace(/[.,!?;]$/, '');
+//     let commandHandled = true;
+
+//     console.log("User said (transcribed):", `"${normalizedText}"`);
+    
+//     // --- FAST PATH ---
+    
+//     // --- UPDATED: More robust "Fast Path" logic for form filling ---
+//     const fillPatterns = [
+//         /(?:fill|enter|set) (?:the |my )?(full name|name) (?:as|to|with) (.+)/i,
+//         /(?:fill|enter|set) (?:the |my )?(email|email address) (?:as|to|with) (.+)/i,
+//         /(?:fill|enter|set) (?:the |my )?(password) (?:as|to|with) (.+)/i,
+//         /(?:fill|enter|set) (?:the |my )?(confirm password) (?:as|to|with) (.+)/i,
+//         /my (name) is (.+)/i,
+//         /my (email|email address) is (.+)/i,
+//     ];
+
+//     let formFilled = false;
+//     for (const pattern of fillPatterns) {
+//         const match = speechText.toLowerCase().trim().match(pattern); // Use original speechText for value
+//         if (match) {
+//             let field = match[1].toLowerCase().replace("email address", "email");
+//             let value = match[2];
+
+//             // Map field names to the labels on your form
+//             let fieldLabel = "";
+//             if (field.includes("name")) fieldLabel = "Full Name";
+//             if (field.includes("email")) {
+//                 fieldLabel = "Email Address";
+//                 value = value.replace(/ at /g, '@').replace(/ dot /g, '.').replace(/\s/g, ''); // Sanitize email
+//             }
+//             if (field.includes("password")) fieldLabel = "Password";
+//             if (field.includes("confirm password")) fieldLabel = "Confirm Password";
+            
+//             findInputByLabelAndFill(fieldLabel, value);
+//             speakFeedback(`Setting ${fieldLabel}.`);
+//             commandHandled = true;
+//             formFilled = true;
+//             break;
+//         }
+//     }
+//     // --- End of new form filling logic ---
+
+
+//     if (formFilled) {
+//         // We already handled it and spoke, so just finish
+//     } else if (normalizedText.startsWith("scroll down")) {
+//         window.scrollBy({ top: 500, behavior: 'smooth' });
+//         speakFeedback("Scrolling down.");
+//     } else if (normalizedText.startsWith("scroll up")) {
+//         window.scrollBy({ top: -500, behavior: 'smooth' });
+//         speakFeedback("Scrolling up.");
+//     } else if (normalizedText.startsWith("scroll to top") || normalizedText.startsWith("go to top")) {
+//         window.scrollTo({ top: 0, behavior: 'smooth' });
+//         speakFeedback("Scrolling to top.");
+//     } else if (normalizedText.startsWith("scroll to bottom") || normalizedText.startsWith("go to bottom")) {
+//         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+//         speakFeedback("Scrolling to bottom.");
+//     } 
+//     else if (normalizedText.startsWith("go to home page") || normalizedText.startsWith("go to home")) {
+//         router.push('/');
+//         speakFeedback("Going to Home Page.");
+//     }
+//     else if (normalizedText.startsWith("go to communication")) {
+//         router.push('/communication');
+//         speakFeedback("Going to Communication.");
+//     } else if (normalizedText.startsWith("go to education")) {
+//         router.push('/education');
+//         speakFeedback("Going to Education.");
+//     } else if (normalizedText.startsWith("go to stories")) {
+//         router.push('/stories');
+//         speakFeedback("Going to Stories.");
+//     } else if (normalizedText.startsWith("go to mission")) {
+//         router.push('/mission');
+//         speakFeedback("Going to Mission.");
+//     }
+//     else if (normalizedText.startsWith("click profile")) {
+//         findElementByTextAndClick("Profile");
+//         speakFeedback("Clicked Profile.");
+//     } else if (normalizedText.startsWith("click log out") || normalizedText.startsWith("click logout")) {
+//         findElementByTextAndClick("Logout");
+//         speakFeedback("Clicked Logout.");
+//     } else if (normalizedText.startsWith("click create account")) {
+//         findElementByTextAndClick("Create Account");
+//         speakFeedback("Clicked Create Account.");
+//     }
+//     else {
+//         commandHandled = false;
+//     }
+
+//     // --- SMART PATH ---
+//     if (!commandHandled) {
+//       const isHelpCommand = normalizedText.includes('help') || normalizedText.includes('mayday');
+//       let location = null;
+//       if (isHelpCommand) {
+//           speakFeedback("Sending emergency alerts. Getting your location...");
+//           location = await getUserLocation();
+//           if (!location) {
+//               speakFeedback("Could not get your location. Sending alerts without location.");
+//           }
+//       }
+//       try {
+//           const response = await fetch(`${API_URL}/process-command`, {
+//               method: 'POST',
+//               headers: { 'Content-Type': 'application/json' },
+//               body: JSON.stringify({ text: speechText, page_commands: pageSpecificCommandsRef.current, location: location })
+//           });
+//           if (!response.ok) throw new Error(`Server error: ${response.status}`);
+//           const data: ApiResponse = await response.json();
+//           handleApiResponse(data);
+//       } catch (error) {
+//           console.error('Error processing command:', error);
+//           setStatus('Error connecting to backend.');
+//           speakFeedback("I'm having trouble connecting to my brain right now.");
+//       }
+//     }
+
+//     setTimeout(() => {
+//         isProcessingRef.current = false;
+//     }, 1000); 
+
+//   }, [handleApiResponse, API_URL, router]); 
+
+//   // --- STABLE LISTENING LOGIC (Unchanged) ---
+//   const startListening = useCallback(() => {
+//     if (isListening) return;
+
+//     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+//     if (!SpeechRecognition) {
+//       alert("Browser doesn't support speech recognition.");
+//       return;
+//     }
+
+//     const recognition = new SpeechRecognition();
+//     recognition.continuous = true;
+//     recognition.interimResults = false;
+//     recognition.lang = 'en-US';
+
+//     recognitionRef.current = recognition;
+//     shouldBeListeningRef.current = true;
+    
+//     recognition.onstart = () => {
+//       setIsListening(true);
+//       setStatus('Listening...');
+//     };
+
+//     recognition.onresult = (event: SpeechRecognitionEvent) => {
+//       const transcript = event.results[event.results.length - 1][0].transcript.trim();
+//       processVoiceCommand(transcript);
+//     };
+
+//     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+//       console.error("Speech recognition error", event.error);
+//       if (event.error === 'no-speech') {
+//         // This is a common browser timeout, the onend handler will fix it.
+//       } else {
+//         setStatus(`Error: ${event.error}`);
+//       }
+//     };
+    
+//     recognition.onend = () => {
+//       if (shouldBeListeningRef.current) {
+//         recognition.start();
+//       } else {
+//         setIsListening(false);
+//         setStatus('Click the mic to start');
+//       }
+//     };
+    
+//     recognition.start();
+
+//   }, [isListening, processVoiceCommand]);
+
+//   const stopListening = useCallback(() => {
+//     if (!recognitionRef.current) return;
+    
+//     shouldBeListeningRef.current = false; 
+//     recognitionRef.current.stop();
+//     recognitionRef.current = null;
+//     speechSynthesis.cancel();
+    
+//   }, []);
+  
+//   const setPageSpecificCommands = useCallback((commands: string[]) => {
+//       pageSpecificCommandsRef.current = commands;
+//   }, []);
+
+//   return { isListening, status, startListening, stopListening, setPageSpecificCommands };
+// };
+
+// "use client";
+
+// import { useState, useRef, useCallback, useEffect } from 'react';
+// import { useRouter } from 'next/navigation';
+
+// // --- Interface definitions ---
+// interface WebsiteCommandPayload {
+//   action: 'scroll' | 'navigate' | 'read' | 'unknown' | 'click' | 'goToPage' | 'fillInput';
+//   target: string | null;
+//   direction?: 'up' | 'down' | 'top' | 'bottom' | null;
+//   value?: string;
+// }
+// interface GeneralAnswerPayload { text_to_speak: string; }
+// interface HelpActionPayload { status: 'success' | 'failed'; }
+// interface PlayGamePayload { name: string; url: string; }
+// interface ApiResponse {
+//   type: 'WEBSITE_COMMAND' | 'GENERAL_ANSWER' | 'HELP_ACTION' | 'PLAY_GAME';
+//   payload: WebsiteCommandPayload | GeneralAnswerPayload | HelpActionPayload | PlayGamePayload;
+// }
+// declare global { interface Window { webkitSpeechRecognition: any; } }
+
+// // --- Helper Functions (Unchanged) ---
+// const speakFeedback = (text: string) => {
+//   if ('speechSynthesis' in window) {
+//     speechSynthesis.cancel();
+//     const utterance = new SpeechSynthesisUtterance(text);
+//     utterance.rate = 0.9;
+//     utterance.pitch = 1.1;
+//     speechSynthesis.speak(utterance);
+//   }
+// };
+
+// const getUserLocation = (): Promise<{ latitude: number; longitude: number } | null> => {
+//   return new Promise((resolve) => {
+//     if (!navigator.geolocation) {
+//       console.error("Geolocation is not supported by this browser.");
+//       resolve(null);
+//     }
+//     navigator.geolocation.getCurrentPosition(
+//       (position) => resolve({ latitude: position.coords.latitude, longitude: position.coords.longitude }),
+//       () => { console.error("Failed to get user location."); resolve(null); }
+//     );
+//   });
+// };
+
+// const findElementByTextAndClick = (text: string): boolean => {
+//   if (!text) return false;
+//   const sanitizedText = text.trim().toLowerCase();
+//   const elements = document.querySelectorAll('a, button, [role="button"], [role="link"]');
+//   for (const element of Array.from(elements)) {
+//     if (element.textContent?.trim().toLowerCase() === sanitizedText) {
+//       (element as HTMLElement).click();
+//       return true;
+//     }
+//   }
+//   return false;
+// };
+
+// const findInputByLabelAndFill = (labelText: string, value: string): boolean => {
+//     if (!labelText || value === undefined) return false;
+//     const sanitizedLabel = labelText.trim().toLowerCase();
+//     const fillAndDispatch = (input: HTMLInputElement | HTMLTextAreaElement) => {
+//         const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
+//         if (nativeInputValueSetter) {
+//             nativeInputValueSetter.call(input, value);
+//         } else {
+//             input.value = value;
+//         }
+//         const inputEvent = new Event('input', { bubbles: true, cancelable: true });
+//         const changeEvent = new Event('change', { bubbles: true, cancelable: true });
+//         input.dispatchEvent(inputEvent);
+//         input.dispatchEvent(changeEvent);
+//     };
+//     const labels = document.querySelectorAll('label');
+//     for (const label of Array.from(labels)) {
+//         if (label.textContent?.trim().toLowerCase().includes(sanitizedLabel)) {
+//             const inputId = label.getAttribute('for');
+//             const input = inputId ? document.getElementById(inputId) as HTMLInputElement | HTMLTextAreaElement : null;
+//             if (input) { fillAndDispatch(input); return true; }
+//         }
+//     }
+//     const inputs = document.querySelectorAll('input, textarea');
+//     for (const input of Array.from(inputs)) {
+//         const ariaLabel = input.getAttribute('aria-label')?.toLowerCase();
+//         const placeholder = input.getAttribute('placeholder')?.toLowerCase();
+//         if (ariaLabel?.includes(sanitizedLabel) || placeholder?.includes(sanitizedLabel)) {
+//             fillAndDispatch(input as HTMLInputElement);
+//             return true;
+//         }
+//     }
+//     return false;
+// };
+
+// // --- Main Hook ---
+// export const useVoiceControl = () => {
+//   const [isListening, setIsListening] = useState(false);
+//   const [status, setStatus] = useState('Click the mic to start');
+  
+//   const recognitionRef = useRef<SpeechRecognition | null>(null);
+//   const isProcessingRef = useRef(false);
+//   const pageSpecificCommandsRef = useRef<string[]>([]);
+//   const shouldBeListeningRef = useRef(false);
+  
+//   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000';
+//   const router = useRouter(); 
+
+//   const handleApiResponse = useCallback((response: ApiResponse) => {
+//     console.log("Handling API Response:", response);
+//     // This function now handles all "Smart Path" responses
+//     if (response.type === 'WEBSITE_COMMAND') {
+//       const command = response.payload as WebsiteCommandPayload;
+//       setStatus(`Command: ${command.action}`);
+//       switch (command.action) {
+//         case 'scroll':
+//           if (command.direction === 'down') { window.scrollBy({ top: 500, behavior: 'smooth' }); speakFeedback("Scrolling down."); }
+//           else if (command.direction === 'up') { window.scrollBy({ top: -500, behavior: 'smooth' }); speakFeedback("Scrolling up."); }
+//           else if (command.direction === 'top' || command.target === 'top') { window.scrollTo({ top: 0, behavior: 'smooth' }); speakFeedback("Scrolling to top."); }
+//           else if (command.direction === 'bottom' || command.target === 'bottom') { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); speakFeedback("Scrolling to bottom."); }
+//           break;
+//         case 'navigate':
+//           if (command.target) {
+//             const element = document.getElementById(command.target);
+//             if (element) { element.scrollIntoView({ behavior: 'smooth', block: 'start' }); speakFeedback(`Navigating to ${command.target}.`); }
+//           }
+//           break;
+//         case 'goToPage':
+//            if (command.target) {
+//              speakFeedback(`Going to the ${command.target.replace('/', '')} page.`);
+//              router.push(command.target);
+//            }
+//            break;
+//         case 'click':
+//            if (command.target) {
+//              const success = findElementByTextAndClick(command.target);
+//              if (success) { speakFeedback(`Clicked ${command.target}.`); }
+//            }
+//            break;
+//         case 'fillInput':
+//            if (command.target && command.value !== undefined) {
+//              const success = findInputByLabelAndFill(command.target, command.value);
+//              if (success) { speakFeedback(`Okay, I've filled the ${command.target} field.`); }
+//            }
+//            break;
+//         case 'unknown':
+//           speakFeedback("Sorry, I didn't understand that command.");
+//           break;
+//       }
+//     } else if (response.type === 'GENERAL_ANSWER') {
+//       const answer = response.payload as GeneralAnswerPayload;
+//       setStatus('Answering question...');
+//       speakFeedback(answer.text_to_speak);
+//     } 
+//     // This case is now handled by the 'callEmergencyApi' function,
+//     // but we leave it here as a fallback in case the AI still sends it.
+//     else if (response.type === 'HELP_ACTION') {
+//       const helpAction = response.payload as HelpActionPayload;
+//       if (helpAction.status === 'success') {
+//         setStatus('Emergency alerts sent.');
+//         speakFeedback('Emergency alerts have been sent via email and SMS with your location.');
+//       } else {
+//         setStatus('Failed to send alerts.');
+//         speakFeedback('Sorry, there was a problem sending the emergency alerts.');
+//       }
+//     }
+//   }, [router]);
+
+//   // --- NEW: Dedicated function for the Emergency API call ---
+//   const callEmergencyApi = useCallback(async (location: { latitude: number; longitude: number } | null) => {
+//     speakFeedback("Sending emergency signal...");
+//     if (!location) {
+//         speakFeedback("Could not get your location. Please enable location permissions. Sending alert without location.");
+//     }
+    
+//     try {
+//         const response = await fetch(`${API_URL}/emergency-alert`, { // The new endpoint
+//             method: 'POST',
+//             headers: { 'Content-Type': 'application/json' },
+//             body: JSON.stringify({ location: location })
+//         });
+//         if (!response.ok) throw new Error('Server error');
+        
+//         const data = await response.json();
+//         if (data.status === 'success') {
+//             setStatus('Emergency alerts sent.');
+//             speakFeedback('Emergency alerts have been sent via email and SMS with your location.');
+//         } else {
+//             throw new Error('Backend failed to send alert.');
+//         }
+//     } catch (error) {
+//         console.error('Error calling emergency API:', error);
+//         setStatus('Failed to send alerts.');
+//         speakFeedback('Sorry, there was a problem sending the emergency alerts.');
+//     }
+//   }, [API_URL]);
+
+
+//   const processVoiceCommand = useCallback(async (speechText: string) => {
+//     if (isProcessingRef.current) return;
+//     isProcessingRef.current = true;
+    
+//     const normalizedText = speechText.toLowerCase().trim().replace(/[.,!?;]$/, '');
+//     let commandHandled = true;
+
+//     console.log("User said (transcribed):", `"${normalizedText}"`);
+    
+//     // --- UPDATED: The new "Triage" Logic ---
+    
+//     // --- Path 1: Secure Path (SOS) ---
+//     if (normalizedText.includes('help') || normalizedText.includes('mayday')) {
+//         const location = await getUserLocation();
+//         await callEmergencyApi(location);
+//     } 
+//     // --- Path 2: Fast Path (Local Commands) ---
+//     else if (normalizedText.startsWith("scroll down")) {
+//         window.scrollBy({ top: 500, behavior: 'smooth' });
+//         speakFeedback("Scrolling down.");
+//     } else if (normalizedText.startsWith("scroll up")) {
+//         window.scrollBy({ top: -500, behavior: 'smooth' });
+//         speakFeedback("Scrolling up.");
+//     } else if (normalizedText.startsWith("scroll to top") || normalizedText.startsWith("go to top")) {
+//         window.scrollTo({ top: 0, behavior: 'smooth' });
+//         speakFeedback("Scrolling to top.");
+//     } else if (normalizedText.startsWith("scroll to bottom") || normalizedText.startsWith("go to bottom")) {
+//         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+//         speakFeedback("Scrolling to bottom.");
+//     } 
+//     else if (normalizedText.startsWith("go to home page") || normalizedText.startsWith("go to home")) {
+//         router.push('/');
+//         speakFeedback("Going to Home Page.");
+//     }
+//     else if (normalizedText.startsWith("go to communication")) {
+//         router.push('/communication');
+//         speakFeedback("Going to Communication.");
+//     } else if (normalizedText.startsWith("go to education")) {
+//         router.push('/education');
+//         speakFeedback("Going to Education.");
+//     } else if (normalizedText.startsWith("go to stories")) {
+//         router.push('/stories');
+//         speakFeedback("Going to Stories.");
+//     } else if (normalizedText.startsWith("go to mission")) {
+//         router.push('/mission');
+//         speakFeedback("Going to Mission.");
+//     }
+//     else if (normalizedText.startsWith("click profile")) {
+//         findElementByTextAndClick("Profile");
+//         speakFeedback("Clicked Profile.");
+//     } else if (normalizedText.startsWith("click log out") || normalizedText.startsWith("click logout")) {
+//         findElementByTextAndClick("Logout");
+//         speakFeedback("Clicked Logout.");
+//     } else if (normalizedText.startsWith("click create account")) {
+//         findElementByTextAndClick("Create Account");
+//         speakFeedback("Clicked Create Account.");
+//     }
+//     // Form Filling
+//     else if (normalizedText.startsWith("my name is ")) {
+//         const name = speechText.substring(11);
+//         findInputByLabelAndFill("Full Name", name);
+//         speakFeedback(`Setting name to ${name}.`);
+//     } else if (normalizedText.startsWith("my email is ")) {
+//         const email = speechText.substring(12).replace(/ at /g, '@').replace(/ dot /g, '.').replace(/\s/g, '');
+//         findInputByLabelAndFill("Email Address", email);
+//         speakFeedback(`Setting email.`);
+//     } else if (normalizedText.startsWith("set password to ")) {
+//         const password = speechText.substring(16);
+//         findInputByLabelAndFill("Password", password);
+//         speakFeedback("Setting password.");
+//     } else if (normalizedText.startsWith("confirm password ") || normalizedText.startsWith("confirm password to ")) {
+//         const password = speechText.substring(speechText.indexOf("to ") + 3);
+//         findInputByLabelAndFill("Confirm Password", password);
+//         speakFeedback("Confirming password.");
+//     }
+//     else {
+//         commandHandled = false;
+//     }
+
+//     // --- Path 3: Smart Path (AI Fallback) ---
+//     if (!commandHandled) {
+//       try {
+//           const response = await fetch(`${API_URL}/process-command`, {
+//               method: 'POST',
+//               headers: { 'Content-Type': 'application/json' },
+//               body: JSON.stringify({ text: speechText, page_commands: pageSpecificCommandsRef.current, location: null })
+//           });
+//           if (!response.ok) throw new Error(`Server error: ${response.status}`);
+//           const data: ApiResponse = await response.json();
+//           handleApiResponse(data);
+//       } catch (error) {
+//           console.error('Error processing command:', error);
+//           setStatus('Error connecting to backend.');
+//           speakFeedback("I'm having trouble connecting to my brain right now.");
+//       }
+//     }
+
+//     setTimeout(() => {
+//         isProcessingRef.current = false;
+//     }, 1000); 
+
+//   }, [handleApiResponse, API_URL, router, callEmergencyApi]); // Added callEmergencyApi
+
+//   // --- STABLE LISTENING LOGIC (Unchanged) ---
+//   const startListening = useCallback(() => {
+//     if (isListening) return;
+
+//     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+//     if (!SpeechRecognition) {
+//       alert("Browser doesn't support speech recognition.");
+//       return;
+//     }
+
+//     const recognition = new SpeechRecognition();
+//     recognition.continuous = true;
+//     recognition.interimResults = false;
+//     recognition.lang = 'en-US';
+
+//     recognitionRef.current = recognition;
+//     shouldBeListeningRef.current = true;
+    
+//     recognition.onstart = () => {
+//       setIsListening(true);
+//       setStatus('Listening...');
+//     };
+
+//     recognition.onresult = (event: SpeechRecognitionEvent) => {
+//       const transcript = event.results[event.results.length - 1][0].transcript.trim();
+//       processVoiceCommand(transcript);
+//     };
+
+//     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+//       console.error("Speech recognition error", event.error);
+//       if (event.error === 'no-speech') {
+//         // This is a common browser timeout, the onend handler will fix it.
+//       } else {
+//         setStatus(`Error: ${event.error}`);
+//       }
+//     };
+    
+//     recognition.onend = () => {
+//       if (shouldBeListeningRef.current) {
+//         recognition.start();
+//       } else {
+//         setIsListening(false);
+//         setStatus('Click the mic to start');
+//       }
+//     };
+    
+//     recognition.start();
+
+//   }, [isListening, processVoiceCommand]);
+
+//   const stopListening = useCallback(() => {
+//     if (!recognitionRef.current) return;
+    
+//     shouldBeListeningRef.current = false; 
+//     recognitionRef.current.stop();
+//     recognitionRef.current = null;
+//     speechSynthesis.cancel();
+    
+//   }, []);
+  
+//   const setPageSpecificCommands = useCallback((commands: string[]) => {
+//       pageSpecificCommandsRef.current = commands;
+//   }, []);
+
+//   return { isListening, status, startListening, stopListening, setPageSpecificCommands };
+// };
+
+
+// "use client";
+
+// import { useState, useRef, useCallback, useEffect } from 'react';
+// import { useRouter } from 'next/navigation';
+
+// // --- Interface definitions (unchanged) ---
+// interface WebsiteCommandPayload {
+//   action: 'scroll' | 'navigate' | 'read' | 'unknown' | 'click' | 'goToPage' | 'fillInput';
+//   target: string | null;
+//   direction?: 'up' | 'down' | 'top' | 'bottom' | null;
+//   value?: string;
+// }
+// interface GeneralAnswerPayload { text_to_speak: string; }
+// interface HelpActionPayload { status: 'success' | 'failed'; }
+// interface PlayGamePayload { name: string; url: string; }
+// interface ApiResponse {
+//   type: 'WEBSITE_COMMAND' | 'GENERAL_ANSWER' | 'HELP_ACTION' | 'PLAY_GAME';
+//   payload: WebsiteCommandPayload | GeneralAnswerPayload | HelpActionPayload | PlayGamePayload;
+// }
+// declare global { interface Window { webkitSpeechRecognition: any; } }
+
+// // --- Helper Functions (unchanged) ---
+// const speakFeedback = (text: string) => {
+//   if ('speechSynthesis' in window) {
+//     speechSynthesis.cancel();
+//     const utterance = new SpeechSynthesisUtterance(text);
+//     utterance.rate = 0.9;
+//     utterance.pitch = 1.1;
+//     speechSynthesis.speak(utterance);
+//   }
+// };
+
+// const getUserLocation = (): Promise<{ latitude: number; longitude: number } | null> => {
+//   return new Promise((resolve) => {
+//     if (!navigator.geolocation) {
+//       console.error("Geolocation is not supported by this browser.");
+//       resolve(null);
+//     }
+//     navigator.geolocation.getCurrentPosition(
+//       (position) => resolve({ latitude: position.coords.latitude, longitude: position.coords.longitude }),
+//       () => { console.error("Failed to get user location."); resolve(null); }
+//     );
+//   });
+// };
+
+// const findElementByTextAndClick = (text: string): boolean => {
+//   if (!text) return false;
+//   const sanitizedText = text.trim().toLowerCase();
+//   const elements = document.querySelectorAll('a, button, [role="button"], [role="link"]');
+//   for (const element of Array.from(elements)) {
+//     if (element.textContent?.trim().toLowerCase() === sanitizedText) {
+//       (element as HTMLElement).click();
+//       return true;
+//     }
+//   }
+//   return false;
+// };
+
+// const findInputByLabelAndFill = (labelText: string, value: string): boolean => {
+//     if (!labelText || value === undefined) return false;
+//     const sanitizedLabel = labelText.trim().toLowerCase();
+//     const fillAndDispatch = (input: HTMLInputElement | HTMLTextAreaElement) => {
+//         const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
+//         if (nativeInputValueSetter) {
+//             nativeInputValueSetter.call(input, value);
+//         } else {
+//             input.value = value;
+//         }
+//         const inputEvent = new Event('input', { bubbles: true, cancelable: true });
+//         const changeEvent = new Event('change', { bubbles: true, cancelable: true });
+//         input.dispatchEvent(inputEvent);
+//         input.dispatchEvent(changeEvent);
+//     };
+//     const labels = document.querySelectorAll('label');
+//     for (const label of Array.from(labels)) {
+//         if (label.textContent?.trim().toLowerCase().includes(sanitizedLabel)) {
+//             const inputId = label.getAttribute('for');
+//             const input = inputId ? document.getElementById(inputId) as HTMLInputElement | HTMLTextAreaElement : null;
+//             if (input) { fillAndDispatch(input); return true; }
+//         }
+//     }
+//     const inputs = document.querySelectorAll('input, textarea');
+//     for (const input of Array.from(inputs)) {
+//         const ariaLabel = input.getAttribute('aria-label')?.toLowerCase();
+//         const placeholder = input.getAttribute('placeholder')?.toLowerCase();
+//         if (ariaLabel?.includes(sanitizedLabel) || placeholder?.includes(sanitizedLabel)) {
+//             fillAndDispatch(input as HTMLInputElement);
+//             return true;
+//         }
+//     }
+//     return false;
+// };
+
+// // --- Main Hook ---
+// export const useVoiceControl = () => {
+//   const [isListening, setIsListening] = useState(false);
+//   const [status, setStatus] = useState('Click the mic to start');
+  
+//   const recognitionRef = useRef<SpeechRecognition | null>(null);
+//   const isProcessingRef = useRef(false);
+//   const pageSpecificCommandsRef = useRef<string[]>([]);
+//   const shouldBeListeningRef = useRef(false);
+  
+//   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000';
+//   const router = useRouter(); 
+
+//   const handleApiResponse = useCallback((response: ApiResponse) => {
+//     console.log("Handling API Response:", response);
+//     // This function now ONLY handles "Smart Path" responses (AI, SOS)
+//     if (response.type === 'WEBSITE_COMMAND') {
+//       const command = response.payload as WebsiteCommandPayload;
+//       setStatus(`Command: ${command.action}`);
+//       // Fallbacks in case "Fast Path" fails or AI is needed
+//       switch (command.action) {
+//         case 'scroll':
+//           if (command.direction === 'down') { window.scrollBy({ top: 500, behavior: 'smooth' }); speakFeedback("Scrolling down."); }
+//           else if (command.direction === 'up') { window.scrollBy({ top: -500, behavior: 'smooth' }); speakFeedback("Scrolling up."); }
+//           else if (command.direction === 'top' || command.target === 'top') { window.scrollTo({ top: 0, behavior: 'smooth' }); speakFeedback("Scrolling to top."); }
+//           else if (command.direction === 'bottom' || command.target === 'bottom') { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); speakFeedback("Scrolling to bottom."); }
+//           break;
+//         case 'navigate':
+//           if (command.target) {
+//             const element = document.getElementById(command.target);
+//             if (element) { element.scrollIntoView({ behavior: 'smooth', block: 'start' }); speakFeedback(`Navigating to ${command.target}.`); }
+//           }
+//           break;
+//         case 'goToPage':
+//            if (command.target) {
+//              speakFeedback(`Going to the ${command.target.replace('/', '')} page.`);
+//              router.push(command.target);
+//            }
+//            break;
+//         case 'click':
+//            if (command.target) {
+//              const success = findElementByTextAndClick(command.target);
+//              if (success) { speakFeedback(`Clicked ${command.target}.`); }
+//            }
+//            break;
+//         case 'fillInput':
+//            if (command.target && command.value !== undefined) {
+//              const success = findInputByLabelAndFill(command.target, command.value);
+//              if (success) { speakFeedback(`Okay, I've filled the ${command.target} field.`); }
+//            }
+//            break;
+//         case 'unknown':
+//           speakFeedback("Sorry, I didn't understand that command.");
+//           break;
+//       }
+//     } else if (response.type === 'GENERAL_ANSWER') {
+//       const answer = response.payload as GeneralAnswerPayload;
+//       setStatus('Answering question...');
+//       speakFeedback(answer.text_to_speak);
+//     } else if (response.type === 'HELP_ACTION') {
+//       const helpAction = response.payload as HelpActionPayload;
+//       if (helpAction.status === 'success') {
+//         setStatus('Emergency alerts sent.');
+//         speakFeedback('Emergency alerts have been sent via email and SMS with your location.');
+//       } else {
+//         setStatus('Failed to send alerts.');
+//         speakFeedback('Sorry, there was a problem sending the emergency alerts.');
+//       }
+//     }
+//   }, [router]);
+
+//   const processVoiceCommand = useCallback(async (speechText: string) => {
+//     if (isProcessingRef.current) return;
+//     isProcessingRef.current = true;
+    
+//     // Remove punctuation from the end of the command
+//     const normalizedText = speechText.toLowerCase().trim().replace(/[.,!?;]$/, '');
+//     let commandHandled = true;
+
+//     console.log("User said (transcribed):", `"${normalizedText}"`);
+    
+//     // --- FAST PATH ---
+    
+//     // --- UPDATED: More robust "Fast Path" logic for form filling ---
+//     const fillPatterns = [
+//         /(?:fill|enter|set) (?:the |my )?(full name|name) (?:as|to|with) (.+)/i,
+//         /(?:fill|enter|set) (?:the |my )?(email|email address) (?:as|to|with) (.+)/i,
+//         /(?:fill|enter|set) (?:the |my )?(password) (?:as|to|with) (.+)/i,
+//         /(?:fill|enter|set) (?:the |my )?(confirm password) (?:as|to|with) (.+)/i,
+//         /my (name) is (.+)/i,
+//         /my (email|email address) is (.+)/i,
+//     ];
+
+//     let formFilled = false;
+//     for (const pattern of fillPatterns) {
+//         const match = speechText.toLowerCase().trim().match(pattern); // Use original speechText for value
+//         if (match) {
+//             let field = match[1].toLowerCase().replace("email address", "email");
+//             let value = match[2];
+
+//             let fieldLabel = "";
+//             if (field.includes("name")) fieldLabel = "Full Name";
+//             if (field.includes("email")) {
+//                 fieldLabel = "Email Address";
+//                 value = value.replace(/ at /g, '@').replace(/ dot /g, '.').replace(/\s/g, '');
+//             }
+//             if (field.includes("password")) fieldLabel = "Password";
+//             if (field.includes("confirm password")) fieldLabel = "Confirm Password";
+            
+//             findInputByLabelAndFill(fieldLabel, value);
+//             speakFeedback(`Setting ${fieldLabel}.`);
+//             commandHandled = true;
+//             formFilled = true;
+//             break;
+//         }
+//     }
+
+//     if (formFilled) {
+//         // Command was handled
+//     } else if (normalizedText.startsWith("scroll down")) {
+//         window.scrollBy({ top: 500, behavior: 'smooth' });
+//         speakFeedback("Scrolling down.");
+//     } else if (normalizedText.startsWith("scroll up")) {
+//         window.scrollBy({ top: -500, behavior: 'smooth' });
+//         speakFeedback("Scrolling up.");
+//     } else if (normalizedText.startsWith("scroll to top") || normalizedText.startsWith("go to top")) {
+//         window.scrollTo({ top: 0, behavior: 'smooth' });
+//         speakFeedback("Scrolling to top.");
+//     } else if (normalizedText.startsWith("scroll to bottom") || normalizedText.startsWith("go to bottom")) {
+//         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+//         speakFeedback("Scrolling to bottom.");
+//     } 
+//     else if (normalizedText.startsWith("go to home page") || normalizedText.startsWith("go to home")) {
+//         router.push('/');
+//         speakFeedback("Going to Home Page.");
+//     }
+//     else if (normalizedText.startsWith("go to communication")) {
+//         router.push('/communication');
+//         speakFeedback("Going to Communication.");
+//     } else if (normalizedText.startsWith("go to education")) {
+//         router.push('/education');
+//         speakFeedback("Going to Education.");
+//     } else if (normalizedText.startsWith("go to stories")) {
+//         router.push('/stories');
+//         speakFeedback("Going to Stories.");
+//     } else if (normalizedText.startsWith("go to mission")) {
+//         router.push('/mission');
+//         speakFeedback("Going to Mission.");
+//     }
+//     // --- THIS IS THE FIX ---
+//     // Added "click on" to the "Fast Path" logic
+//     else if (normalizedText.startsWith("click profile") || normalizedText.startsWith("click on profile")) {
+//         findElementByTextAndClick("Profile");
+//         speakFeedback("Clicked Profile.");
+//     } else if (normalizedText.startsWith("click log out") || normalizedText.startsWith("click on log out") || normalizedText.startsWith("click logout")) {
+//         findElementByTextAndClick("Logout");
+//         speakFeedback("Clicked Logout.");
+//     } else if (normalizedText.startsWith("click create account") || normalizedText.startsWith("click on create account")) {
+//         findElementByTextAndClick("Create Account");
+//         speakFeedback("Clicked Create Account.");
+//     }
+//     // --- END OF FIX ---
+//     else {
+//         commandHandled = false;
+//     }
+
+//     // --- SMART PATH ---
+//     if (!commandHandled) {
+//       const isHelpCommand = normalizedText.includes('help') || normalizedText.includes('mayday');
+//       let location = null;
+//       if (isHelpCommand) {
+//           speakFeedback("Sending emergency alerts. Getting your location...");
+//           location = await getUserLocation();
+//           if (!location) {
+//               speakFeedback("Could not get your location. Sending alerts without location.");
+//           }
+//       }
+//       try {
+//           const response = await fetch(`${API_URL}/process-command`, {
+//               method: 'POST',
+//               headers: { 'Content-Type': 'application/json' },
+//               body: JSON.stringify({ text: speechText, page_commands: pageSpecificCommandsRef.current, location: location })
+//           });
+//           if (!response.ok) throw new Error(`Server error: ${response.status}`);
+//           const data: ApiResponse = await response.json();
+//           handleApiResponse(data);
+//       } catch (error) {
+//           console.error('Error processing command:', error);
+//           setStatus('Error connecting to backend.');
+//           speakFeedback("I'm having trouble connecting to my brain right now.");
+//       }
+//     }
+
+//     setTimeout(() => {
+//         isProcessingRef.current = false;
+//     }, 1000); 
+
+//   }, [handleApiResponse, API_URL, router]); 
+
+//   // --- STABLE LISTENING LOGIC (Unchanged) ---
+//   const startListening = useCallback(() => {
+//     if (isListening) return;
+
+//     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+//     if (!SpeechRecognition) {
+//       alert("Browser doesn't support speech recognition.");
+//       return;
+//     }
+
+//     const recognition = new SpeechRecognition();
+//     recognition.continuous = true;
+//     recognition.interimResults = false;
+//     recognition.lang = 'en-US';
+
+//     recognitionRef.current = recognition;
+//     shouldBeListeningRef.current = true;
+    
+//     recognition.onstart = () => {
+//       setIsListening(true);
+//       setStatus('Listening...');
+//     };
+
+//     recognition.onresult = (event: SpeechRecognitionEvent) => {
+//       const transcript = event.results[event.results.length - 1][0].transcript.trim();
+//       processVoiceCommand(transcript);
+//     };
+
+//     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+//       console.error("Speech recognition error", event.error);
+//       if (event.error === 'no-speech') {
+//         // This is a common browser timeout, the onend handler will fix it.
+//       } else {
+//         setStatus(`Error: ${event.error}`);
+//       }
+//     };
+    
+//     recognition.onend = () => {
+//       if (shouldBeListeningRef.current) {
+//         recognition.start();
+//       } else {
+//         setIsListening(false);
+//         setStatus('Click the mic to start');
+//       }
+//     };
+    
+//     recognition.start();
+
+//   }, [isListening, processVoiceCommand]);
+
+//   const stopListening = useCallback(() => {
+//     if (!recognitionRef.current) return;
+    
+//     shouldBeListeningRef.current = false; 
+//     recognitionRef.current.stop();
+//     recognitionRef.current = null;
+//     speechSynthesis.cancel();
+    
+//   }, []);
+  
+//   const setPageSpecificCommands = useCallback((commands: string[]) => {
+//       pageSpecificCommandsRef.current = commands;
+//   }, []);
+
+//   return { isListening, status, startListening, stopListening, setPageSpecificCommands };
+// };
+
+// "use client";
+
+// import { useState, useRef, useCallback, useEffect } from 'react';
+// import { useRouter } from 'next/navigation';
+
+// // --- Interface definitions (unchanged) ---
+// interface WebsiteCommandPayload {
+//   action: 'scroll' | 'navigate' | 'read' | 'unknown' | 'click' | 'goToPage' | 'fillInput';
+//   target: string | null;
+//   direction?: 'up' | 'down' | 'top' | 'bottom' | null;
+//   value?: string;
+// }
+// interface GeneralAnswerPayload { text_to_speak: string; }
+// interface HelpActionPayload { status: 'success' | 'failed'; }
+// interface PlayGamePayload { name: string; url: string; }
+// interface ApiResponse {
+//   type: 'WEBSITE_COMMAND' | 'GENERAL_ANSWER' | 'HELP_ACTION' | 'PLAY_GAME';
+//   payload: WebsiteCommandPayload | GeneralAnswerPayload | HelpActionPayload | PlayGamePayload;
+// }
+// declare global { interface Window { webkitSpeechRecognition: any; } }
+
+// // --- Helper Functions (unchanged) ---
+// const speakFeedback = (text: string) => {
+//   if ('speechSynthesis' in window) {
+//     speechSynthesis.cancel();
+//     const utterance = new SpeechSynthesisUtterance(text);
+//     utterance.rate = 0.9;
+//     utterance.pitch = 1.1;
+//     speechSynthesis.speak(utterance);
+//   }
+// };
+
+// const getUserLocation = (): Promise<{ latitude: number; longitude: number } | null> => {
+//   return new Promise((resolve) => {
+//     if (!navigator.geolocation) {
+//       console.error("Geolocation is not supported by this browser.");
+//       resolve(null);
+//     }
+//     navigator.geolocation.getCurrentPosition(
+//       (position) => resolve({ latitude: position.coords.latitude, longitude: position.coords.longitude }),
+//       () => { console.error("Failed to get user location."); resolve(null); }
+//     );
+//   });
+// };
+
+// const findElementByTextAndClick = (text: string): boolean => {
+//   if (!text) return false;
+//   const sanitizedText = text.trim().toLowerCase();
+//   const elements = document.querySelectorAll('a, button, [role="button"], [role="link"]');
+//   for (const element of Array.from(elements)) {
+//     if (element.textContent?.trim().toLowerCase() === sanitizedText) {
+//       (element as HTMLElement).click();
+//       return true;
+//     }
+//   }
+//   return false;
+// };
+
+// const findInputByLabelAndFill = (labelText: string, value: string): boolean => {
+//     if (!labelText || value === undefined) return false;
+//     const sanitizedLabel = labelText.trim().toLowerCase();
+//     const fillAndDispatch = (input: HTMLInputElement | HTMLTextAreaElement) => {
+//         const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
+//         if (nativeInputValueSetter) {
+//             nativeInputValueSetter.call(input, value);
+//         } else {
+//             input.value = value;
+//         }
+//         const inputEvent = new Event('input', { bubbles: true, cancelable: true });
+//         const changeEvent = new Event('change', { bubbles: true, cancelable: true });
+//         input.dispatchEvent(inputEvent);
+//         input.dispatchEvent(changeEvent);
+//     };
+//     const labels = document.querySelectorAll('label');
+//     for (const label of Array.from(labels)) {
+//         if (label.textContent?.trim().toLowerCase().includes(sanitizedLabel)) {
+//             const inputId = label.getAttribute('for');
+//             const input = inputId ? document.getElementById(inputId) as HTMLInputElement | HTMLTextAreaElement : null;
+//             if (input) { fillAndDispatch(input); return true; }
+//         }
+//     }
+//     const inputs = document.querySelectorAll('input, textarea');
+//     for (const input of Array.from(inputs)) {
+//         const ariaLabel = input.getAttribute('aria-label')?.toLowerCase();
+//         const placeholder = input.getAttribute('placeholder')?.toLowerCase();
+//         if (ariaLabel?.includes(sanitizedLabel) || placeholder?.includes(sanitizedLabel)) {
+//             fillAndDispatch(input as HTMLInputElement);
+//             return true;
+//         }
+//     }
+//     return false;
+// };
+
+// // --- Main Hook ---
+// export const useVoiceControl = () => {
+//   const [isListening, setIsListening] = useState(false);
+//   const [status, setStatus] = useState('Click the mic to start');
+  
+//   const recognitionRef = useRef<SpeechRecognition | null>(null);
+//   const isProcessingRef = useRef(false);
+//   const pageSpecificCommandsRef = useRef<string[]>([]);
+//   const shouldBeListeningRef = useRef(false);
+  
+//   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000';
+//   const router = useRouter(); 
+
+//   const handleApiResponse = useCallback((response: ApiResponse) => {
+//     console.log("Handling API Response:", response);
+//     // This function now ONLY handles "Smart Path" responses (AI, SOS)
+//     if (response.type === 'WEBSITE_COMMAND') {
+//       const command = response.payload as WebsiteCommandPayload;
+//       setStatus(`Command: ${command.action}`);
+//       // Fallbacks in case "Fast Path" fails or AI is needed
+//       switch (command.action) {
+//         case 'scroll':
+//           if (command.direction === 'down') { window.scrollBy({ top: 500, behavior: 'smooth' }); speakFeedback("Scrolling down."); }
+//           else if (command.direction === 'up') { window.scrollBy({ top: -500, behavior: 'smooth' }); speakFeedback("Scrolling up."); }
+//           else if (command.direction === 'top' || command.target === 'top') { window.scrollTo({ top: 0, behavior: 'smooth' }); speakFeedback("Scrolling to top."); }
+//           else if (command.direction === 'bottom' || command.target === 'bottom') { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); speakFeedback("Scrolling to bottom."); }
+//           break;
+//         case 'navigate':
+//           if (command.target) {
+//             const element = document.getElementById(command.target);
+//             if (element) { element.scrollIntoView({ behavior: 'smooth', block: 'start' }); speakFeedback(`Navigating to ${command.target}.`); }
+//           }
+//           break;
+//         case 'goToPage':
+//            if (command.target) {
+//              speakFeedback(`Going to the ${command.target.replace('/', '')} page.`);
+//              router.push(command.target);
+//            }
+//            break;
+//         case 'click':
+//            if (command.target) {
+//              const success = findElementByTextAndClick(command.target);
+//              if (success) { speakFeedback(`Clicked ${command.target}.`); }
+//            }
+//            break;
+//         case 'fillInput':
+//            if (command.target && command.value !== undefined) {
+//              const success = findInputByLabelAndFill(command.target, command.value);
+//              if (success) { speakFeedback(`Okay, I've filled the ${command.target} field.`); }
+//            }
+//            break;
+//         case 'unknown':
+//           speakFeedback("Sorry, I didn't understand that command.");
+//           break;
+//       }
+//     } else if (response.type === 'GENERAL_ANSWER') {
+//       const answer = response.payload as GeneralAnswerPayload;
+//       setStatus('Answering question...');
+//       speakFeedback(answer.text_to_speak);
+//     } else if (response.type === 'HELP_ACTION') {
+//       const helpAction = response.payload as HelpActionPayload;
+//       if (helpAction.status === 'success') {
+//         setStatus('Emergency alerts sent.');
+//         speakFeedback('Emergency alerts have been sent via email and SMS with your location.');
+//       } else {
+//         setStatus('Failed to send alerts.');
+//         speakFeedback('Sorry, there was a problem sending the emergency alerts.');
+//       }
+//     }
+//   }, [router]);
+
+//   const processVoiceCommand = useCallback(async (speechText: string) => {
+//     if (isProcessingRef.current) return;
+//     isProcessingRef.current = true;
+    
+//     // Remove punctuation from the end of the command
+//     const normalizedText = speechText.toLowerCase().trim().replace(/[.,!?;]$/, '');
+//     let commandHandled = true;
+
+//     console.log("User said (transcribed):", `"${normalizedText}"`);
+    
+//     // --- FAST PATH ---
+    
+//     // --- 1. Form Filling (Most Specific) ---
+//     const fillPatterns = [
+//         /(?:fill|enter|set) (?:the |my )?(full name|name) (?:as|to|with) (.+)/i,
+//         /(?:fill|enter|set) (?:the |my )?(email|email address) (?:as|to|with) (.+)/i,
+//         /(?:fill|enter|set) (?:the |my )?(password) (?:as|to|with) (.+)/i,
+//         /(?:fill|enter|set) (?:the |my )?(confirm password) (?:as|to|with) (.+)/i,
+//         /my (name) is (.+)/i,
+//         /my (email|email address) is (.+)/i,
+//     ];
+
+//     let formFilled = false;
+//     for (const pattern of fillPatterns) {
+//         const match = speechText.toLowerCase().trim().match(pattern);
+//         if (match) {
+//             let field = match[1].toLowerCase().replace("email address", "email");
+//             let value = match[2];
+//             let fieldLabel = "";
+//             if (field.includes("name")) fieldLabel = "Full Name";
+//             if (field.includes("email")) {
+//                 fieldLabel = "Email Address";
+//                 value = value.replace(/ at /g, '@').replace(/ dot /g, '.').replace(/\s/g, '');
+//             }
+//             if (field.includes("password")) fieldLabel = "Password";
+//             if (field.includes("confirm password")) fieldLabel = "Confirm Password";
+            
+//             findInputByLabelAndFill(fieldLabel, value);
+//             speakFeedback(`Setting ${fieldLabel}.`);
+//             commandHandled = true;
+//             formFilled = true;
+//             break;
+//         }
+//     }
+
+//     // --- 2. Scrolling, Navigation, and Clicks ---
+//     if (!formFilled) {
+//         if (normalizedText.startsWith("scroll down")) {
+//             window.scrollBy({ top: 500, behavior: 'smooth' });
+//             speakFeedback("Scrolling down.");
+//         } else if (normalizedText.startsWith("scroll up")) {
+//             window.scrollBy({ top: -500, behavior: 'smooth' });
+//             speakFeedback("Scrolling up.");
+//         } else if (normalizedText.startsWith("scroll to top") || normalizedText.startsWith("go to top")) {
+//             window.scrollTo({ top: 0, behavior: 'smooth' });
+//             speakFeedback("Scrolling to top.");
+//         } else if (normalizedText.startsWith("scroll to bottom") || normalizedText.startsWith("go to bottom")) {
+//             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+//             speakFeedback("Scrolling to bottom.");
+//         } 
+//         else if (normalizedText.startsWith("go to home page") || normalizedText.startsWith("go to home")) {
+//             router.push('/');
+//             speakFeedback("Going to Home Page.");
+//         }
+//         else if (normalizedText.startsWith("go to communication")) {
+//             router.push('/communication');
+//             speakFeedback("Going to Communication.");
+//         } else if (normalizedText.startsWith("go to education")) {
+//             router.push('/education');
+//             speakFeedback("Going to Education.");
+//         } else if (normalizedText.startsWith("go to stories")) {
+//             router.push('/stories');
+//             speakFeedback("Going to Stories.");
+//         } else if (normalizedText.startsWith("go to mission")) {
+//             router.push('/mission');
+//             speakFeedback("Going to Mission.");
+//         }
+        
+//         // --- NEW, ROBUST CLICK LOGIC ---
+//         else if (normalizedText.startsWith("click")) {
+//             // Extracts "profile" from "click on profile" or "click profile"
+//             const targetText = normalizedText.replace("click on ", "").replace("click ", "");
+            
+//             // Map spoken commands to the exact text on the button
+//             let buttonText = "";
+//             if (targetText === "profile") buttonText = "Profile";
+//             else if (targetText === "log out" || targetText === "logout") buttonText = "Logout";
+//             else if (targetText === "create account") buttonText = "Create Account";
+//             else if (targetText === "sign in" || targetText === "sign in here") buttonText = "Sign in here";
+//             else if (targetText === "sign up") buttonText = "Sign Up";
+            
+//             if (buttonText) {
+//                 const success = findElementByTextAndClick(buttonText);
+//                 if(success) {
+//                     speakFeedback(`Clicked ${buttonText}.`);
+//                 } else {
+//                     // Fallback to API if we can't find it
+//                     commandHandled = false;
+//                 }
+//             } else {
+//                 commandHandled = false; // Not a click command we recognize
+//             }
+//         }
+//         // --- END OF NEW CLICK LOGIC ---
+
+//         else {
+//             commandHandled = false;
+//         }
+//     }
+
+//     // --- 3. SMART PATH (Unchanged) ---
+//     if (!commandHandled) {
+//       const isHelpCommand = normalizedText.includes('help') || normalizedText.includes('mayday');
+//       let location = null;
+//       if (isHelpCommand) {
+//           speakFeedback("Sending emergency alerts. Getting your location...");
+//           location = await getUserLocation();
+//           if (!location) {
+//               speakFeedback("Could not get your location. Sending alerts without location.");
+//           }
+//       }
+//       try {
+//           const response = await fetch(`${API_URL}/process-command`, {
+//               method: 'POST',
+//               headers: { 'Content-Type': 'application/json' },
+//               body: JSON.stringify({ text: speechText, page_commands: pageSpecificCommandsRef.current, location: location })
+//           });
+//           if (!response.ok) throw new Error(`Server error: ${response.status}`);
+//           const data: ApiResponse = await response.json();
+//           handleApiResponse(data);
+//       } catch (error) {
+//           console.error('Error processing command:', error);
+//           setStatus('Error connecting to backend.');
+//           speakFeedback("I'm having trouble connecting to my brain right now.");
+//       }
+//     }
+
+//     setTimeout(() => {
+//         isProcessingRef.current = false;
+//     }, 1000); 
+
+//   }, [handleApiResponse, API_URL, router]); 
+
+//   // --- STABLE LISTENING LOGIC (Unchanged) ---
+//   const startListening = useCallback(() => {
+//     if (isListening) return;
+
+//     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+//     if (!SpeechRecognition) {
+//       alert("Browser doesn't support speech recognition.");
+//       return;
+//     }
+
+//     const recognition = new SpeechRecognition();
+//     recognition.continuous = true;
+//     recognition.interimResults = false;
+//     recognition.lang = 'en-US';
+
+//     recognitionRef.current = recognition;
+//     shouldBeListeningRef.current = true;
+    
+//     recognition.onstart = () => {
+//       setIsListening(true);
+//       setStatus('Listening...');
+//     };
+
+//     recognition.onresult = (event: SpeechRecognitionEvent) => {
+//       const transcript = event.results[event.results.length - 1][0].transcript.trim();
+//       processVoiceCommand(transcript);
+//     };
+
+//     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+//       console.error("Speech recognition error", event.error);
+//       if (event.error === 'no-speech') {
+//         // This is a common browser timeout, the onend handler will fix it.
+//       } else {
+//         setStatus(`Error: ${event.error}`);
+//       }
+//     };
+    
+//     recognition.onend = () => {
+//       if (shouldBeListeningRef.current) {
+//         recognition.start();
+//       } else {
+//         setIsListening(false);
+//         setStatus('Click the mic to start');
+//       }
+//     };
+    
+//     recognition.start();
+
+//   }, [isListening, processVoiceCommand]);
+
+//   const stopListening = useCallback(() => {
+//     if (!recognitionRef.current) return;
+    
+//     shouldBeListeningRef.current = false; 
+//     recognitionRef.current.stop();
+//     recognitionRef.current = null;
+//     speechSynthesis.cancel();
+    
+//   }, []);
+  
+//   const setPageSpecificCommands = useCallback((commands: string[]) => {
+//       pageSpecificCommandsRef.current = commands;
+//   }, []);
+
+//   return { isListening, status, startListening, stopListening, setPageSpecificCommands };
+// };
+
+// "use client";
+
+// import { useState, useRef, useCallback, useEffect } from 'react';
+// import { useRouter } from 'next/navigation';
+
+// // --- Interface definitions (unchanged) ---
+// interface WebsiteCommandPayload {
+//   action: 'scroll' | 'navigate' | 'read' | 'unknown' | 'click' | 'goToPage' | 'fillInput';
+//   target: string | null;
+//   direction?: 'up' | 'down' | 'top' | 'bottom' | null;
+//   value?: string;
+// }
+// interface GeneralAnswerPayload { text_to_speak: string; }
+// interface HelpActionPayload { status: 'success' | 'failed'; }
+// interface PlayGamePayload { name: string; url: string; }
+// interface ApiResponse {
+//   type: 'WEBSITE_COMMAND' | 'GENERAL_ANSWER' | 'HELP_ACTION' | 'PLAY_GAME';
+//   payload: WebsiteCommandPayload | GeneralAnswerPayload | HelpActionPayload | PlayGamePayload;
+// }
+// declare global { interface Window { webkitSpeechRecognition: any; } }
+
+// // --- Helper Functions (unchanged) ---
+// const speakFeedback = (text: string) => {
+//   if ('speechSynthesis' in window) {
+//     speechSynthesis.cancel();
+//     const utterance = new SpeechSynthesisUtterance(text);
+//     utterance.rate = 0.9;
+//     utterance.pitch = 1.1;
+//     speechSynthesis.speak(utterance);
+//   }
+// };
+
+// const getUserLocation = (): Promise<{ latitude: number; longitude: number } | null> => {
+//   return new Promise((resolve) => {
+//     if (!navigator.geolocation) {
+//       console.error("Geolocation is not supported by this browser.");
+//       resolve(null);
+//     }
+//     navigator.geolocation.getCurrentPosition(
+//       (position) => resolve({ latitude: position.coords.latitude, longitude: position.coords.longitude }),
+//       () => { console.error("Failed to get user location."); resolve(null); }
+//     );
+//   });
+// };
+
+// const findElementByTextAndClick = (text: string): boolean => {
+//   if (!text) return false;
+//   const sanitizedText = text.trim().toLowerCase();
+//   const elements = document.querySelectorAll('a, button, [role="button"], [role="link"]');
+//   for (const element of Array.from(elements)) {
+//     if (element.textContent?.trim().toLowerCase() === sanitizedText) {
+//       (element as HTMLElement).click();
+//       return true;
+//     }
+//   }
+//   return false;
+// };
+
+// const findInputByLabelAndFill = (labelText: string, value: string): boolean => {
+//     if (!labelText || value === undefined) return false;
+//     const sanitizedLabel = labelText.trim().toLowerCase();
+//     const fillAndDispatch = (input: HTMLInputElement | HTMLTextAreaElement) => {
+//         const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
+//         if (nativeInputValueSetter) {
+//             nativeInputValueSetter.call(input, value);
+//         } else {
+//             input.value = value;
+//         }
+//         const inputEvent = new Event('input', { bubbles: true, cancelable: true });
+//         const changeEvent = new Event('change', { bubbles: true, cancelable: true });
+//         input.dispatchEvent(inputEvent);
+//         input.dispatchEvent(changeEvent);
+//     };
+//     const labels = document.querySelectorAll('label');
+//     for (const label of Array.from(labels)) {
+//         if (label.textContent?.trim().toLowerCase().includes(sanitizedLabel)) {
+//             const inputId = label.getAttribute('for');
+//             const input = inputId ? document.getElementById(inputId) as HTMLInputElement | HTMLTextAreaElement : null;
+//             if (input) { fillAndDispatch(input); return true; }
+//         }
+//     }
+//     const inputs = document.querySelectorAll('input, textarea');
+//     for (const input of Array.from(inputs)) {
+//         const ariaLabel = input.getAttribute('aria-label')?.toLowerCase();
+//         const placeholder = input.getAttribute('placeholder')?.toLowerCase();
+//         // Check for placeholder text which is very common
+//         if (ariaLabel?.includes(sanitizedLabel) || placeholder?.includes(sanitizedLabel)) {
+//             fillAndDispatch(input as HTMLInputElement);
+//             return true;
+//         }
+//     }
+//     return false;
+// };
+
+// // --- Main Hook ---
+// export const useVoiceControl = () => {
+//   const [isListening, setIsListening] = useState(false);
+//   const [status, setStatus] = useState('Click the mic to start');
+  
+//   const recognitionRef = useRef<SpeechRecognition | null>(null);
+//   const isProcessingRef = useRef(false);
+//   const pageSpecificCommandsRef = useRef<string[]>([]);
+//   const shouldBeListeningRef = useRef(false);
+  
+//   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000';
+//   const router = useRouter(); 
+
+//   const handleApiResponse = useCallback((response: ApiResponse) => {
+//     console.log("Handling API Response:", response);
+//     // This function now ONLY handles "Smart Path" responses (AI, SOS)
+//     if (response.type === 'WEBSITE_COMMAND') {
+//       const command = response.payload as WebsiteCommandPayload;
+//       setStatus(`Command: ${command.action}`);
+//       // This is now just a fallback for any commands the "Fast Path" missed
+//       switch (command.action) {
+//         // ... (all cases remain as fallbacks)
+//       }
+//     } else if (response.type === 'GENERAL_ANSWER') {
+//       const answer = response.payload as GeneralAnswerPayload;
+//       setStatus('Answering question...');
+//       speakFeedback(answer.text_to_speak);
+//     } else if (response.type === 'HELP_ACTION') {
+//       const helpAction = response.payload as HelpActionPayload;
+//       if (helpAction.status === 'success') {
+//         setStatus('Emergency alerts sent.');
+//         speakFeedback('Emergency alerts have been sent via email and SMS with your location.');
+//       } else {
+//         setStatus('Failed to send alerts.');
+//         speakFeedback('Sorry, there was a problem sending the emergency alerts.');
+//       }
+//     }
+//   }, [router]);
+
+//   const processVoiceCommand = useCallback(async (speechText: string) => {
+//     if (isProcessingRef.current) return;
+//     isProcessingRef.current = true;
+    
+//     // Remove punctuation from the end of the command
+//     const normalizedText = speechText.toLowerCase().trim().replace(/[.,!?;]$/, '');
+//     let commandHandled = true;
+
+//     console.log("User said (transcribed):", `"${normalizedText}"`);
+    
+//     // --- FAST PATH ---
+    
+//     // --- 1. Form Filling (Most Specific) ---
+//     // This regex now finds the field and the value
+//     const fillPattern = /(?:fill|enter|set) (?:the |my )?(full name|name|email|email address|password|confirm password) (?:as|to|with) (.+)/i;
+//     const simpleFillPattern = /my (name|email|email address) is (.+)/i;
+
+//     let fillMatch = normalizedText.match(fillPattern);
+//     if (!fillMatch) {
+//       fillMatch = normalizedText.match(simpleFillPattern);
+//     }
+
+//     if (fillMatch) {
+//         let field = fillMatch[1].toLowerCase().replace("email address", "email");
+//         let value = fillMatch[2];
+//         let fieldLabel = "";
+
+//         if (field.includes("name")) fieldLabel = "Full Name";
+//         else if (field.includes("email")) {
+//             fieldLabel = "Email Address";
+//             value = value.replace(/ at /g, '@').replace(/ dot /g, '.').replace(/\s/g, '');
+//         }
+//         else if (field === "password") fieldLabel = "Password"; // Use exact match for password
+//         else if (field.includes("confirm password")) fieldLabel = "Confirm Password";
+        
+//         if (fieldLabel) {
+//             findInputByLabelAndFill(fieldLabel, value);
+//             speakFeedback(`Setting ${fieldLabel}.`);
+//         } else {
+//             commandHandled = false; // Let AI try
+//         }
+//     }
+    
+//     // --- 2. Scrolling, Navigation, and Clicks ---
+//     else if (normalizedText.startsWith("scroll down")) {
+//         window.scrollBy({ top: 500, behavior: 'smooth' });
+//         speakFeedback("Scrolling down.");
+//     } else if (normalizedText.startsWith("scroll up")) {
+//         window.scrollBy({ top: -500, behavior: 'smooth' });
+//         speakFeedback("Scrolling up.");
+//     } else if (normalizedText.startsWith("scroll to top") || normalizedText.startsWith("go to top")) {
+//         window.scrollTo({ top: 0, behavior: 'smooth' });
+//         speakFeedback("Scrolling to top.");
+//     } else if (normalizedText.startsWith("scroll to bottom") || normalizedText.startsWith("go to bottom")) {
+//         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+//         speakFeedback("Scrolling to bottom.");
+//     } 
+//     else if (normalizedText.startsWith("go to home page") || normalizedText.startsWith("go to home")) {
+//         router.push('/');
+//         speakFeedback("Going to Home Page.");
+//     }
+//     else if (normalizedText.startsWith("go to communication")) {
+//         router.push('/communication');
+//         speakFeedback("Going to Communication.");
+//     } else if (normalizedText.startsWith("go to education")) {
+//         router.push('/education');
+//         speakFeedback("Going to Education.");
+//     } else if (normalizedText.startsWith("go to stories")) {
+//         router.push('/stories');
+//         speakFeedback("Going to Stories.");
+//     } else if (normalizedText.startsWith("go to mission")) {
+//         router.push('/mission');
+//         speakFeedback("Going to Mission.");
+//     }
+    
+//     // --- FINAL ROBUST CLICK LOGIC ---
+//     else if (normalizedText.startsWith("click")) {
+//         const targetText = normalizedText.replace("click on ", "").replace("click ", "");
+        
+//         // This is a map of *spoken* commands to the *exact text* on the button
+//         const buttonMap: { [key: string]: string } = {
+//             "profile": "Profile",
+//             "log out": "Logout",
+//             "logout": "Logout",
+//             "create account": "Create Account",
+//             "sign in": "Sign in here",
+//             "sign in here": "Sign in here",
+//             "sign up": "Sign Up",
+//             "login": "Login"
+//         };
+        
+//         const buttonText = buttonMap[targetText];
+        
+//         if (buttonText) {
+//             const success = findElementByTextAndClick(buttonText);
+//             if(success) {
+//                 speakFeedback(`Clicked ${buttonText}.`);
+//             } else {
+//                 speakFeedback(`Sorry, I couldn't find the ${buttonText} button.`);
+//             }
+//         } else {
+//             commandHandled = false; // Not a click command we recognize
+//         }
+//     }
+//     // --- END OF CLICK LOGIC ---
+
+//     else {
+//         commandHandled = false;
+//     }
+
+//     // --- 3. SMART PATH (Unchanged) ---
+//     if (!commandHandled) {
+//       const isHelpCommand = normalizedText.includes('help') || normalizedText.includes('mayday');
+//       let location = null;
+//       if (isHelpCommand) {
+//           speakFeedback("Sending emergency alerts. Getting your location...");
+//           location = await getUserLocation();
+//           if (!location) {
+//               speakFeedback("Could not get your location. Sending alerts without location.");
+//           }
+//       }
+//       try {
+//           const response = await fetch(`${API_URL}/process-command`, {
+//               method: 'POST',
+//               headers: { 'Content-Type': 'application/json' },
+//               body: JSON.stringify({ text: speechText, page_commands: pageSpecificCommandsRef.current, location: location })
+//           });
+//           if (!response.ok) throw new Error(`Server error: ${response.status}`);
+//           const data: ApiResponse = await response.json();
+//           handleApiResponse(data);
+//       } catch (error) {
+//           console.error('Error processing command:', error);
+//           setStatus('Error connecting to backend.');
+//           speakFeedback("I'm having trouble connecting to my brain right now.");
+//       }
+//     }
+
+//     setTimeout(() => {
+//         isProcessingRef.current = false;
+//     }, 1000); 
+
+//   }, [handleApiResponse, API_URL, router]); 
+
+//   // --- STABLE LISTENING LOGIC (Unchanged) ---
+//   const startListening = useCallback(() => {
+//     if (isListening) return;
+
+//     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+//     if (!SpeechRecognition) {
+//       alert("Browser doesn't support speech recognition.");
+//       return;
+//     }
+
+//     const recognition = new SpeechRecognition();
+//     recognition.continuous = true;
+//     recognition.interimResults = false;
+//     recognition.lang = 'en-US';
+
+//     recognitionRef.current = recognition;
+//     shouldBeListeningRef.current = true;
+    
+//     recognition.onstart = () => {
+//       setIsListening(true);
+//       setStatus('Listening...');
+//     };
+
+//     recognition.onresult = (event: SpeechRecognitionEvent) => {
+//       const transcript = event.results[event.results.length - 1][0].transcript.trim();
+//       processVoiceCommand(transcript);
+//     };
+
+//     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+//       console.error("Speech recognition error", event.error);
+//       if (event.error === 'no-speech') {
+//         // This is a common browser timeout, the onend handler will fix it.
+//       } else {
+//         setStatus(`Error: ${event.error}`);
+//       }
+//     };
+    
+//     recognition.onend = () => {
+//       if (shouldBeListeningRef.current) {
+//         recognition.start();
+//       } else {
+//         setIsListening(false);
+//         setStatus('Click the mic to start');
+//       }
+//     };
+    
+//     recognition.start();
+
+//   }, [isListening, processVoiceCommand]);
+
+//   const stopListening = useCallback(() => {
+//     if (!recognitionRef.current) return;
+    
+//     shouldBeListeningRef.current = false; 
+//     recognitionRef.current.stop();
+//     recognitionRef.current = null;
+//     speechSynthesis.cancel();
+    
+//   }, []);
+  
+//   const setPageSpecificCommands = useCallback((commands: string[]) => {
+//       pageSpecificCommandsRef.current = commands;
+//   }, []);
+
+//   return { isListening, status, startListening, stopListening, setPageSpecificCommands };
+// };
+
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from 'react';
@@ -4465,9 +6265,12 @@ const findElementByTextAndClick = (text: string): boolean => {
   return false;
 };
 
+// --- UPDATED findInputByLabelAndFill function ---
 const findInputByLabelAndFill = (labelText: string, value: string): boolean => {
     if (!labelText || value === undefined) return false;
-    const sanitizedLabel = labelText.trim().toLowerCase();
+    // This now also checks for "e-mail" and "email address"
+    const sanitizedLabel = labelText.trim().toLowerCase().replace("e-mail", "email").replace("email address", "email");
+    
     const fillAndDispatch = (input: HTMLInputElement | HTMLTextAreaElement) => {
         const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
         if (nativeInputValueSetter) {
@@ -4480,9 +6283,12 @@ const findInputByLabelAndFill = (labelText: string, value: string): boolean => {
         input.dispatchEvent(inputEvent);
         input.dispatchEvent(changeEvent);
     };
+    
     const labels = document.querySelectorAll('label');
     for (const label of Array.from(labels)) {
-        if (label.textContent?.trim().toLowerCase().includes(sanitizedLabel)) {
+        // Also check for "e-mail" and "email address" in the label
+        const labelTextContent = label.textContent?.trim().toLowerCase().replace("e-mail", "email").replace("email address", "email");
+        if (labelTextContent?.includes(sanitizedLabel)) {
             const inputId = label.getAttribute('for');
             const input = inputId ? document.getElementById(inputId) as HTMLInputElement | HTMLTextAreaElement : null;
             if (input) { fillAndDispatch(input); return true; }
@@ -4490,8 +6296,8 @@ const findInputByLabelAndFill = (labelText: string, value: string): boolean => {
     }
     const inputs = document.querySelectorAll('input, textarea');
     for (const input of Array.from(inputs)) {
-        const ariaLabel = input.getAttribute('aria-label')?.toLowerCase();
-        const placeholder = input.getAttribute('placeholder')?.toLowerCase();
+        const ariaLabel = input.getAttribute('aria-label')?.toLowerCase().replace("e-mail", "email").replace("email address", "email");
+        const placeholder = input.getAttribute('placeholder')?.toLowerCase().replace("e-mail", "email").replace("email address", "email");
         if (ariaLabel?.includes(sanitizedLabel) || placeholder?.includes(sanitizedLabel)) {
             fillAndDispatch(input as HTMLInputElement);
             return true;
@@ -4499,6 +6305,7 @@ const findInputByLabelAndFill = (labelText: string, value: string): boolean => {
     }
     return false;
 };
+
 
 // --- Main Hook ---
 export const useVoiceControl = () => {
@@ -4515,6 +6322,7 @@ export const useVoiceControl = () => {
 
   const handleApiResponse = useCallback((response: ApiResponse) => {
     console.log("Handling API Response:", response);
+    // This function now ONLY handles "Smart Path" responses (AI, SOS)
     if (response.type === 'WEBSITE_COMMAND') {
       const command = response.payload as WebsiteCommandPayload;
       setStatus(`Command: ${command.action}`);
@@ -4574,6 +6382,7 @@ export const useVoiceControl = () => {
     if (isProcessingRef.current) return;
     isProcessingRef.current = true;
     
+    // Remove punctuation from the end of the command
     const normalizedText = speechText.toLowerCase().trim().replace(/[.,!?;]$/, '');
     let commandHandled = true;
 
@@ -4581,46 +6390,45 @@ export const useVoiceControl = () => {
     
     // --- FAST PATH ---
     
-    // --- UPDATED: More robust "Fast Path" logic for form filling ---
-    const fillPatterns = [
-        /(?:fill|enter|set) (?:the |my )?(full name|name) (?:as|to|with) (.+)/i,
-        /(?:fill|enter|set) (?:the |my )?(email|email address) (?:as|to|with) (.+)/i,
-        /(?:fill|enter|set) (?:the |my )?(password) (?:as|to|with) (.+)/i,
-        /(?:fill|enter|set) (?:the |my )?(confirm password) (?:as|to|with) (.+)/i,
-        /my (name) is (.+)/i,
-        /my (email|email address) is (.+)/i,
-    ];
+    // --- 1. Form Filling (Most Specific) ---
+    // UPDATED: Added "e-mail" to the regex
+    const fillPattern = /(?:fill|enter|set) (?:the |my )?(full name|name|email|e-mail|email address|password|confirm password) (?:as|to|with) (.+)/i;
+    const simpleFillPattern = /my (name|email|e-mail|email address) is (.+)/i;
+
+    // --- BUG FIX: We now match against normalizedText ---
+    let fillMatch = normalizedText.match(fillPattern);
+    if (!fillMatch) {
+      fillMatch = normalizedText.match(simpleFillPattern);
+    }
 
     let formFilled = false;
-    for (const pattern of fillPatterns) {
-        const match = speechText.toLowerCase().trim().match(pattern); // Use original speechText for value
-        if (match) {
-            let field = match[1].toLowerCase().replace("email address", "email");
-            let value = match[2];
+    if (fillMatch) {
+        // Use replace() to handle "e-mail" and "email address"
+        let field = fillMatch[1].toLowerCase().replace("e-mail", "email").replace("email address", "email");
+        let value = fillMatch[2];
+        let fieldLabel = "";
 
-            // Map field names to the labels on your form
-            let fieldLabel = "";
-            if (field.includes("name")) fieldLabel = "Full Name";
-            if (field.includes("email")) {
-                fieldLabel = "Email Address";
-                value = value.replace(/ at /g, '@').replace(/ dot /g, '.').replace(/\s/g, ''); // Sanitize email
-            }
-            if (field.includes("password")) fieldLabel = "Password";
-            if (field.includes("confirm password")) fieldLabel = "Confirm Password";
-            
+        // --- BUG FIX: Swapped order of password and confirm password ---
+        if (field.includes("name")) fieldLabel = "Full Name";
+        else if (field.includes("email")) {
+            fieldLabel = "Email Address";
+            value = value.replace(/ at /g, '@').replace(/ dot /g, '.').replace(/\s/g, '');
+        }
+        else if (field.includes("confirm password")) fieldLabel = "Confirm Password";
+        else if (field.includes("password")) fieldLabel = "Password";
+        
+        if (fieldLabel) {
             findInputByLabelAndFill(fieldLabel, value);
             speakFeedback(`Setting ${fieldLabel}.`);
             commandHandled = true;
             formFilled = true;
-            break;
+        } else {
+            commandHandled = false; // Let AI try
         }
     }
-    // --- End of new form filling logic ---
-
-
-    if (formFilled) {
-        // We already handled it and spoke, so just finish
-    } else if (normalizedText.startsWith("scroll down")) {
+    
+    // --- 2. Scrolling, Navigation, and Clicks ---
+    else if (normalizedText.startsWith("scroll down")) {
         window.scrollBy({ top: 500, behavior: 'smooth' });
         speakFeedback("Scrolling down.");
     } else if (normalizedText.startsWith("scroll up")) {
@@ -4650,21 +6458,44 @@ export const useVoiceControl = () => {
         router.push('/mission');
         speakFeedback("Going to Mission.");
     }
-    else if (normalizedText.startsWith("click profile")) {
-        findElementByTextAndClick("Profile");
-        speakFeedback("Clicked Profile.");
-    } else if (normalizedText.startsWith("click log out") || normalizedText.startsWith("click logout")) {
-        findElementByTextAndClick("Logout");
-        speakFeedback("Clicked Logout.");
-    } else if (normalizedText.startsWith("click create account")) {
-        findElementByTextAndClick("Create Account");
-        speakFeedback("Clicked Create Account.");
+    
+    // --- UPDATED: Robust Click Logic ---
+    else if (normalizedText.startsWith("click")) {
+        // Extracts "profile" from "click on profile" or "click profile"
+        const targetText = normalizedText.replace("click on ", "").replace("click ", "");
+        
+        // This is a map of *spoken* commands to the *exact text* on the button
+        const buttonMap: { [key: string]: string } = {
+            "profile": "Profile",
+            "log out": "Logout",
+            "logout": "Logout",
+            "create account": "Create Account",
+            "sign in": "Sign in",
+            "sign in here": "Sign in",
+            "sign up": "Sign Up",
+            "login": "Login"
+        };
+        
+        const buttonText = buttonMap[targetText];
+        
+        if (buttonText) {
+            const success = findElementByTextAndClick(buttonText);
+            if(success) {
+                speakFeedback(`Clicked ${buttonText}.`);
+            } else {
+                speakFeedback(`Sorry, I couldn't find the ${buttonText} button.`);
+            }
+        } else {
+            commandHandled = false; // Not a click command we recognize
+        }
     }
+    // --- END OF CLICK LOGIC ---
+
     else {
         commandHandled = false;
     }
 
-    // --- SMART PATH ---
+    // --- 3. SMART PATH (Unchanged) ---
     if (!commandHandled) {
       const isHelpCommand = normalizedText.includes('help') || normalizedText.includes('mayday');
       let location = null;
